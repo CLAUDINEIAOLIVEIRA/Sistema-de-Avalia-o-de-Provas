@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trabalho / Artigo — FAETERJ</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">📄</div>
+    <div>
+      <h1>Avaliação de Trabalho / Artigo</h1>
+      <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
+    </div>
+  </div>
+
+  <!-- NAVEGAÇÃO -->
+  <nav class="nav">
+    <a href="index.html">🏠 Início</a>
+    <a href="prova.html">📋 Prova objetiva</a>
+    <a href="trabalho.html" class="active">📄 Trabalho / Artigo</a>
+    <a href="historico.html">🕐 Histórico</a>
+  </nav>
+
+  <!-- DADOS DO ALUNO -->
+  <div class="card">
+    <h2>👤 Dados do aluno e trabalho</h2>
+    <div class="form-row">
+      <label>Nome do aluno</label>
+      <input id="t-nome" type="text" placeholder="Ex: Liz Bárbara Santos Pereira">
+    </div>
+    <div class="grid2">
+      <div class="form-row">
+        <label>Disciplina</label>
+        <select id="t-disc"></select>
+      </div>
+      <div class="form-row">
+        <label>Tipo de trabalho</label>
+        <select id="t-tipo">
+          <option>Artigo científico</option>
+          <option>Relatório técnico</option>
+          <option>Projeto prático</option>
+          <option>Apresentação</option>
+          <option>Trabalho N2</option>
+          <option>Monografia</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Título do trabalho</label>
+      <input id="t-titulo" type="text" placeholder="Ex: Análise de algoritmos de ordenação paralela em C++">
+    </div>
+    <div class="grid2">
+      <div class="form-row">
+        <label>Valor máximo</label>
+        <select id="t-valor">
+          <option value="10">10,0 pontos</option>
+          <option value="6">6,0 pontos</option>
+          <option value="3">3,0 pontos</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Data de entrega</label>
+        <input id="t-data" type="date">
+      </div>
+    </div>
+  </div>
+
+  <!-- RUBRICA -->
+  <div class="card">
+    <h2>📋 Avaliação por rubrica</h2>
+    <p class="text-muted" style="margin-bottom:10px">
+      Clique nas estrelas (1-5) para avaliar cada critério. O peso de cada critério está indicado.
+    </p>
+    <div id="rubrica-container"></div>
+    <div class="nota-final">
+      <span>Nota calculada pela rubrica</span>
+      <strong id="nota-calc">— / 10</strong>
+    </div>
+  </div>
+
+  <!-- ANÁLISE IA -->
+  <div class="card">
+    <h2>🤖 Análise automática com IA</h2>
+    <p class="text-muted" style="margin-bottom:10px">
+      Cole o resumo, abstract ou trechos principais do trabalho para receber
+      feedback pedagógico automático da IA.
+    </p>
+    <div class="form-row">
+      <label>Texto do trabalho (abstract, introdução ou trechos)</label>
+      <textarea id="t-texto" placeholder="Cole aqui o texto para análise pela IA..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="analisarIA()">🤖 Analisar com IA</button>
+      <button class="btn btn-green" onclick="calcularNota()">🧮 Recalcular nota</button>
+    </div>
+    <div class="ai-box" id="ai-result">
+      <span class="ai-loading">
+        O feedback da IA aparecerá aqui após clicar em "Analisar com IA".
+      </span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="salvarTrabalho()">💾 Salvar no histórico</button>
+      <a href="historico.html" class="btn">🕐 Ver histórico</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/trabalho.js"></script>
+</body>
+</html>

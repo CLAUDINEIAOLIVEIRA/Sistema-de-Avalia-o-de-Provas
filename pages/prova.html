@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prova Objetiva — FAETERJ</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .upload-zone {
+      border: 2px dashed #4285f4;
+      border-radius: 10px;
+      padding: 30px 20px;
+      text-align: center;
+      background: #f8f9ff;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      background: #e8f0fe; border-color: #1a73e8;
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0;
+      cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-title { font-size: 14px; font-weight: 600; color: #1a73e8; margin-bottom: 4px; }
+    .upload-desc  { font-size: 12px; color: #888; }
+    .preview-container {
+      margin-top: 12px; border: 1px solid #ddd;
+      border-radius: 8px; overflow: hidden; position: relative;
+    }
+    .preview-container img {
+      width: 100%; max-height: 400px; object-fit: contain;
+      display: block; background: #f5f5f5;
+    }
+    .preview-label {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(0,0,0,0.6); color: #fff;
+      font-size: 11px; padding: 3px 8px; border-radius: 10px;
+    }
+    .pdf-box {
+      background: #fce8e6; border: 1px solid #ea4335;
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; color: #c5221f;
+      margin-top: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .ia-status {
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; margin-top: 10px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .ia-status.processando { background: #e8f0fe; border: 1px solid #4285f4; color: #1a73e8; }
+    .ia-status.sucesso     { background: #e6f4ea; border: 1px solid #34a853; color: #137333; }
+    .ia-status.erro        { background: #fce8e6; border: 1px solid #ea4335; color: #c5221f; }
+    .ia-obs {
+      background: #fef7e0; border: 1px solid #fbbc04;
+      border-radius: 6px; padding: 10px 12px;
+      font-size: 12px; color: #7a4f00; margin-top: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    .modo-toggle { display: flex; gap: 8px; margin-bottom: 0; }
+    .modo-btn {
+      flex: 1; padding: 9px; border: 1px solid #ddd;
+      border-radius: 8px; background: #fff; cursor: pointer;
+      font-size: 12px; font-weight: 500; color: #666;
+      text-align: center; transition: all 0.15s;
+    }
+    .modo-btn.active { background: #e8f0fe; border-color: #4285f4; color: #1a73e8; }
+    .batch-item {
+      background: #f9f9f9; border: 1px solid #eee;
+      border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 8px; display: flex;
+      align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .batch-nome { font-size: 13px; font-weight: 600; color: #333; }
+    .batch-sub  { font-size: 11px; color: #888; margin-top: 2px; }
+    .batch-nota { font-size: 15px; font-weight: 700; color: #1a73e8; }
+    .align-wrap {
+      border: 1px solid #ddd; border-radius: 8px; overflow: hidden;
+      background: #eee; display: flex; justify-content: center;
+    }
+    #align-canvas { max-width: 100%; height: auto; display: block; cursor: crosshair; }
+    .align-instrucoes {
+      background: #e8f0fe; border: 1px solid #4285f4; border-radius: 8px;
+      padding: 10px 12px; font-size: 12px; color: #1a73e8; margin-bottom: 10px;
+    }
+    .pontos-status { font-size: 12px; font-weight: 600; color: #555; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">📋</div>
+    <div>
+      <h1>Correção de Prova Objetiva</h1>
+      <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a href="index.html">🏠 Início</a>
+    <a href="prova.html" class="active">📋 Prova objetiva</a>
+    <a href="trabalho.html">📄 Trabalho / Artigo</a>
+    <a href="historico.html">🕐 Histórico</a>
+  </nav>
+
+  <div class="card">
+    <h2>⚙️ Modo de correção</h2>
+    <div class="modo-toggle">
+      <div class="modo-btn active" id="btn-individual" onclick="setModo('individual')">👤 Aluno individual</div>
+      <div class="modo-btn" id="btn-lote" onclick="setModo('lote')">👥 Vários alunos (lote)</div>
+    </div>
+  </div>
+
+  <!-- MODO INDIVIDUAL -->
+  <div id="modo-individual">
+    <div class="card">
+      <h2>👤 Dados do aluno</h2>
+      <div class="form-row"><label>Nome do aluno</label><input id="p-nome" type="text" placeholder="Ex: Michael Neves Sobrinho"></div>
+      <div class="grid2">
+        <div class="form-row"><label>Disciplina</label><select id="p-disc"></select></div>
+        <div class="form-row"><label>Tipo de avaliação</label>
+          <select id="p-tipo"><option>P1</option><option>P2</option><option>N2 (Trabalho)</option><option>2ª Chamada</option><option>Prova Final</option></select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="form-row"><label>Valor da prova</label>
+          <select id="p-valor"><option value="10">10,0 pontos</option><option value="6">6,0 pontos</option><option value="4">4,0 pontos</option></select>
+        </div>
+        <div class="form-row"><label>Quantidade de questões</label>
+          <select id="p-qtd" onchange="buildGrids()"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ Gabarito — respostas corretas</h2>
+      <div class="section-label">Selecione a resposta correta de cada questão</div>
+      <div class="gab-grid" id="gab-grid"></div>
+    </div>
+
+    <div class="card">
+      <h2>📸 Enviar foto da folha de respostas</h2>
+      <p class="text-muted" style="margin-bottom:12px">
+        Envie a foto da folha de respostas padronizada preenchida pelo aluno.
+        Ainda não tem a folha? <a href="folha.html">📄 Gerar folha de respostas para imprimir</a>.
+      </p>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="arquivo-prova" accept="image/jpeg,image/png,image/webp,image/gif" onchange="onArquivoSelecionado(this)">
+        <div class="upload-icon">📎</div>
+        <div class="upload-title">Clique aqui ou arraste o arquivo</div>
+        <div class="upload-desc">Aceita: JPG, PNG, WEBP, GIF · Máx 20MB</div>
+      </div>
+      <div id="preview-container" class="preview-container hidden">
+        <span class="preview-label">📸 Prova enviada</span>
+        <img id="img-preview" src="" alt="Preview da prova">
+      </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-primary" id="btn-ler" onclick="iniciarAlinhamentoIndividual()" disabled>🧭 Alinhar e ler bolhas</button>
+        <button class="btn" onclick="limparUpload()">🔄 Limpar arquivo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✏️ Respostas identificadas</h2>
+      <p class="text-muted" style="margin-bottom:10px">Preenchidas automaticamente pela leitura da folha. Corrija manualmente se necessário.</p>
+      <div class="gab-grid" id="resp-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="corrigirProva()">📊 Corrigir prova</button>
+        <button class="btn" onclick="limparProva()">🔄 Limpar tudo</button>
+      </div>
+    </div>
+
+    <div id="resultado-prova" class="hidden">
+      <div class="card">
+        <h2>📊 Resultado da correção</h2>
+        <div id="res-summary"></div>
+        <div style="margin-top:14px">
+          <div class="section-label">Detalhe por questão</div>
+          <table class="q-table">
+            <thead><tr><th>Questão</th><th>Gabarito</th><th>Aluno marcou</th><th>Resultado</th></tr></thead>
+            <tbody id="res-tbody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="salvarProva()">💾 Salvar no histórico</button>
+          <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
+          <a href="historico.html" class="btn">🕐 Ver histórico</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODO LOTE -->
+  <div id="modo-lote" class="hidden">
+    <div class="card">
+      <h2>⚙️ Configurações</h2>
+      <div class="grid2">
+        <div class="form-row"><label>Disciplina</label><select id="lote-disc"></select></div>
+        <div class="form-row"><label>Tipo</label>
+          <select id="lote-tipo"><option>P1</option><option>P2</option><option>N2</option><option>2ª Chamada</option></select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="form-row"><label>Valor</label>
+          <select id="lote-valor"><option value="10">10,0</option><option value="6">6,0</option><option value="4">4,0</option></select>
+        </div>
+        <div class="form-row"><label>Questões</label>
+          <select id="lote-qtd" onchange="buildGridLote()"></select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>✅ Gabarito do lote</h2>
+      <div class="gab-grid" id="gab-grid-lote"></div>
+    </div>
+    <div class="card">
+      <h2>📁 Enviar múltiplas folhas de respostas</h2>
+      <p class="text-muted" style="margin-bottom:10px">
+        Nomeie os arquivos com o nome do aluno (ex: <strong>joao_silva.jpg</strong>) para identificação automática.
+        Você vai alinhar os cantos de cada folha, uma por vez.
+      </p>
+      <div class="upload-zone">
+        <input type="file" id="arquivos-lote" multiple accept="image/jpeg,image/png,image/webp" onchange="onLoteSelecionado(this)">
+        <div class="upload-icon">📁</div>
+        <div class="upload-title">Clique para selecionar várias provas</div>
+        <div class="upload-desc">Múltiplos arquivos · JPG, PNG, WEBP</div>
+      </div>
+      <div id="lote-lista" class="hidden" style="margin-top:12px">
+        <div class="section-label" id="lote-count"></div>
+        <div id="lote-items"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-lote-processar" onclick="processarLote()" disabled>🧭 Iniciar leitura do lote</button>
+        <button class="btn btn-green" id="btn-lote-salvar" onclick="salvarLote()" disabled>💾 Salvar todas</button>
+        <button class="btn" onclick="exportarCSV()">📥 Exportar CSV</button>
+      </div>
+    </div>
+    <div id="lote-resultados" class="hidden">
+      <div class="card">
+        <h2>📊 Resultados do lote</h2>
+        <div id="lote-resumo"></div>
+        <div id="lote-resultado-lista" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="card-alinhamento">
+    <h2>🧭 Alinhar cantos da folha</h2>
+    <div class="align-instrucoes" id="align-instrucoes">
+      💡 Clique nos 4 quadrados pretos da folha, na ordem: <strong>superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo</strong>.
+    </div>
+    <div class="align-wrap"><canvas id="align-canvas"></canvas></div>
+    <div class="pontos-status" id="pontos-status">0/4 cantos marcados</div>
+    <div id="ia-status-box" class="hidden"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-ler-bolhas" onclick="processarLeitura()" disabled>✅ Ler bolhas</button>
+      <button class="btn" onclick="omrReiniciarPontos()">🔄 Reiniciar pontos</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/folha.js"></script>
+<script src="../js/prova.js"></script>
+<script src="../js/leitura-template.js"></script>
+<script>
+function setModo(modo) {
+  document.getElementById('modo-individual').classList.toggle('hidden', modo !== 'individual');
+  document.getElementById('modo-lote').classList.toggle('hidden', modo !== 'lote');
+  document.getElementById('btn-individual').classList.toggle('active', modo === 'individual');
+  document.getElementById('btn-lote').classList.toggle('active', modo === 'lote');
+  document.getElementById('card-alinhamento').classList.add('hidden');
+  modoLeituraAtual = null;
+}
+
+let modoLeituraAtual = null; // 'individual' | 'lote'
+let arquivoAtual = null;
+
+function onArquivoSelecionado(input) {
+  const file = input.files[0];
+  if (!file) return;
+  arquivoAtual = file;
+  mostrarPreview(file);
+  document.getElementById('btn-ler').disabled = false;
+}
+
+async function iniciarAlinhamentoIndividual() {
+  if (!arquivoAtual) return;
+  modoLeituraAtual = 'individual';
+  document.getElementById('align-instrucoes').innerHTML =
+    '💡 Clique nos 4 quadrados pretos da folha, na ordem: <strong>superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo</strong>.';
+  document.getElementById('ia-status-box').classList.add('hidden');
+  document.getElementById('card-alinhamento').classList.remove('hidden');
+  await omrCarregarImagem(arquivoAtual);
+  omrReiniciarPontos();
+  document.getElementById('card-alinhamento').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function processarLeitura() {
+  const btnLerBolhas = document.getElementById('btn-ler-bolhas');
+  const statusBox = document.getElementById('ia-status-box');
+  btnLerBolhas.disabled = true;
+  try {
+    const qtd = modoLeituraAtual === 'lote'
+      ? parseInt(document.getElementById('lote-qtd').value)
+      : parseInt(document.getElementById('p-qtd').value);
+    const { respostas } = omrLerRespostas(qtd);
+    const ileg = respostas.filter(r => r === '?').length;
+
+    if (modoLeituraAtual === 'lote') {
+      const file = arquivosLote[loteIndex];
+      let acertos = 0;
+      for (let j = 1; j <= qtd; j++) {
+        const gab = document.getElementById('lgab' + j)?.value || '';
+        if (gab && respostas[j - 1] && gab === respostas[j - 1]) acertos++;
+      }
+      const valor = parseFloat(document.getElementById('lote-valor').value);
+      const nota = (acertos / qtd * valor).toFixed(1).replace('.', ',');
+      resultadosLote.push({ nome: nomeDoArquivo(file.name), arquivo: file.name, respostas, acertos, nota });
+      const st = document.getElementById('status-lote-' + loteIndex);
+      if (st) st.innerHTML = '<span style="color:#137333;font-weight:600">' + acertos + '/' + qtd + ' · ' + nota + '</span>';
+
+      loteIndex++;
+      if (loteIndex < arquivosLote.length) {
+        await avancarParaProximaDoLote();
+      } else {
+        finalizarLote();
+      }
+    } else {
+      preencherRespostasLidas(respostas);
+      statusBox.className = 'ia-status sucesso';
+      statusBox.innerHTML = '✅ <div><strong>Leitura concluída!</strong><br><span style="font-size:12px">' + (qtd - ileg) + ' respostas identificadas · ' + ileg + ' em branco/ilegíveis (?)</span></div>';
+      statusBox.classList.remove('hidden');
+      btnLerBolhas.disabled = false;
+    }
+  } catch (err) {
+    statusBox.className = 'ia-status erro';
+    statusBox.innerHTML = '❌ <div><strong>Erro na leitura</strong><br><span style="font-size:12px">' + err.message + '</span></div>';
+    statusBox.classList.remove('hidden');
+    btnLerBolhas.disabled = false;
+  }
+}
+
+function limparUpload() {
+  arquivoAtual = null;
+  document.getElementById('arquivo-prova').value = '';
+  document.getElementById('preview-container').classList.add('hidden');
+  document.getElementById('ia-status-box').classList.add('hidden');
+  document.getElementById('btn-ler').disabled = true;
+  document.getElementById('card-alinhamento').classList.add('hidden');
+  modoLeituraAtual = null;
+}
+
+const uz = document.getElementById('upload-zone');
+if (uz) {
+  uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
+  uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
+  uz.addEventListener('drop', e => {
+    e.preventDefault(); uz.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) { arquivoAtual = file; mostrarPreview(file); document.getElementById('btn-ler').disabled = false; }
+  });
+}
+
+let arquivosLote = [], resultadosLote = [], loteIndex = 0;
+function buildGridLote() {
+  const qtd = parseInt(document.getElementById('lote-qtd').value);
+  const g = document.getElementById('gab-grid-lote');
+  g.innerHTML = '';
+  for (let i = 1; i <= qtd; i++) {
+    const d = document.createElement('div'); d.className = 'gab-item';
+    d.innerHTML = '<span>Q' + i + '</span><select id="lgab' + i + '"><option value="">—</option><option>a</option><option>b</option><option>c</option><option>d</option></select>';
+    g.appendChild(d);
+  }
+}
+function nomeDoArquivo(n) {
+  return n.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ')
+    .split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+function onLoteSelecionado(input) {
+  arquivosLote = Array.from(input.files);
+  document.getElementById('lote-count').textContent = arquivosLote.length + ' prova(s) selecionada(s)';
+  document.getElementById('lote-items').innerHTML = arquivosLote.map((f, i) =>
+    '<div class="batch-item"><div><div class="batch-nome">' + nomeDoArquivo(f.name) + '</div>' +
+    '<div class="batch-sub">' + f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB</div></div>' +
+    '<span id="status-lote-' + i + '" style="font-size:12px;color:#888">Aguardando...</span></div>'
+  ).join('');
+  document.getElementById('lote-lista').classList.remove('hidden');
+  document.getElementById('btn-lote-processar').disabled = false;
+}
+async function processarLote() {
+  if (!arquivosLote.length) return;
+  modoLeituraAtual = 'lote';
+  loteIndex = 0;
+  resultadosLote = [];
+  document.getElementById('btn-lote-processar').disabled = true;
+  document.getElementById('ia-status-box').classList.add('hidden');
+  document.getElementById('card-alinhamento').classList.remove('hidden');
+  await avancarParaProximaDoLote();
+  document.getElementById('card-alinhamento').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function avancarParaProximaDoLote() {
+  const file = arquivosLote[loteIndex];
+  const st = document.getElementById('status-lote-' + loteIndex);
+  if (st) st.innerHTML = '<span class="spin">⏳</span> Aguardando alinhamento...';
+  document.getElementById('align-instrucoes').innerHTML =
+    '💡 Prova ' + (loteIndex + 1) + ' de ' + arquivosLote.length + ' — <strong>' + nomeDoArquivo(file.name) + '</strong>. ' +
+    'Clique nos 4 quadrados pretos, na ordem: superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo.';
+  await omrCarregarImagem(file);
+  omrReiniciarPontos();
+}
+
+function finalizarLote() {
+  document.getElementById('card-alinhamento').classList.add('hidden');
+  modoLeituraAtual = null;
+  document.getElementById('btn-lote-processar').disabled = false;
+  document.getElementById('btn-lote-salvar').disabled = false;
+  const qtd2 = parseInt(document.getElementById('lote-qtd').value);
+  const ok = resultadosLote.filter(r => !r.erro);
+  document.getElementById('lote-resumo').innerHTML =
+    '<div style="display:flex;gap:10px;margin-bottom:12px">' +
+    '<div style="background:#e6f4ea;border:1px solid #34a853;border-radius:8px;padding:10px 16px;text-align:center"><div style="font-size:22px;font-weight:700;color:#137333">' + ok.length + '</div><div style="font-size:11px">Corrigidas</div></div>' +
+    '<div style="background:#fce8e6;border:1px solid #ea4335;border-radius:8px;padding:10px 16px;text-align:center"><div style="font-size:22px;font-weight:700;color:#c5221f">' + resultadosLote.filter(r=>r.erro).length + '</div><div style="font-size:11px">Com erro</div></div></div>';
+  document.getElementById('lote-resultado-lista').innerHTML = resultadosLote.map(r => r.erro
+    ? '<div class="batch-item"><div><div class="batch-nome">' + r.nome + '</div><div class="batch-sub">' + r.arquivo + '</div></div><span style="color:#c5221f;font-size:12px">❌ ' + r.erro + '</span></div>'
+    : '<div class="batch-item"><div><div class="batch-nome">' + r.nome + '</div><div class="batch-sub">' + r.acertos + '/' + qtd2 + ' acertos · ' + r.arquivo + '</div></div><div style="text-align:right"><div class="batch-nota">' + r.nota + '</div><div style="font-size:11px;color:#888">nota</div></div></div>'
+  ).join('');
+  document.getElementById('lote-resultados').classList.remove('hidden');
+  document.getElementById('lote-resultados').scrollIntoView({ behavior: 'smooth' });
+}
+function salvarLote() {
+  const disc = document.getElementById('lote-disc')?.value || '—';
+  const avTipo = document.getElementById('lote-tipo')?.value || '—';
+  let salvos = 0;
+  resultadosLote.forEach(r => {
+    if (!r.erro) { adicionarAoHistorico({ tipo:'prova', nome:r.nome, disc, avTipo, nota:r.nota, data:new Date().toLocaleDateString('pt-BR') }); salvos++; }
+  });
+  alert('✅ ' + salvos + ' resultado(s) salvo(s) no histórico!');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  popularQuestoesSelect('p-qtd', 12, 12); popularQuestoesSelect('lote-qtd', 12, 12);
+  buildGrids(); buildGridLote(); setDataHoje('p-data');
+  popularSelect('p-disc', DISCIPLINAS); popularSelect('lote-disc', DISCIPLINAS);
+  initLeituraTemplate();
+});
+</script>
+</body>
+</html>

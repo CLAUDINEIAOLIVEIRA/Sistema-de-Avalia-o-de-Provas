@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Avaliação — FAETERJ</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .menu-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px 16px;
+      text-align: center;
+      text-decoration: none;
+      color: #333;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .menu-card:hover {
+      border-color: #4285f4;
+      background: #f8f9ff;
+      transform: translateY(-2px);
+    }
+    .menu-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .menu-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .menu-desc {
+      font-size: 11px;
+      color: #888;
+      line-height: 1.4;
+    }
+    .menu-card.blue  { border-top: 3px solid #4285f4; }
+    .menu-card.green { border-top: 3px solid #34a853; }
+    .menu-card.gray  { border-top: 3px solid #888; }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-num { font-size: 22px; font-weight: 700; color: #1a73e8; }
+    .stat-lbl { font-size: 11px; color: #888; margin-top: 2px; }
+    .info-box {
+      background: #e8f0fe;
+      border: 1px solid #4285f4;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #1a73e8;
+      margin-top: 12px;
+    }
+    @media (max-width: 600px) {
+      .menu-grid { grid-template-columns: 1fr; }
+      .stats-row { gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">🎓</div>
+    <div>
+      <h1>Sistema de Avaliação — FAETERJ Barra Mansa</h1>
+      <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
+    </div>
+  </div>
+
+  <!-- ESTATÍSTICAS RÁPIDAS -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-num" id="total-aval">0</div><div class="stat-lbl">Avaliações salvas</div></div>
+    <div class="stat-card"><div class="stat-num" id="total-provas">0</div><div class="stat-lbl">Provas corrigidas</div></div>
+    <div class="stat-card"><div class="stat-num" id="total-trab">0</div><div class="stat-lbl">Trabalhos avaliados</div></div>
+  </div>
+
+  <!-- MENU PRINCIPAL -->
+  <div class="card">
+    <h2>📌 Selecione o módulo</h2>
+    <div class="menu-grid">
+      <a href="prova.html" class="menu-card blue">
+        <span class="menu-icon">📋</span>
+        <div class="menu-title">Prova objetiva</div>
+        <div class="menu-desc">Corrija provas de múltipla escolha com gabarito automático</div>
+      </a>
+      <a href="trabalho.html" class="menu-card green">
+        <span class="menu-icon">📄</span>
+        <div class="menu-title">Trabalho / Artigo</div>
+        <div class="menu-desc">Avalie artigos e trabalhos por rubrica com feedback da IA</div>
+      </a>
+      <a href="historico.html" class="menu-card gray">
+        <span class="menu-icon">🕐</span>
+        <div class="menu-title">Histórico</div>
+        <div class="menu-desc">Veja, filtre e exporte todas as avaliações registradas</div>
+      </a>
+    </div>
+
+    <div class="info-box">
+      💡 <strong>Dica:</strong> As avaliações ficam salvas no navegador automaticamente.
+      Use o botão "Exportar CSV" no histórico para salvar em planilha.
+    </div>
+  </div>
+
+  <!-- ÚLTIMAS AVALIAÇÕES -->
+  <div class="card">
+    <h2>🕐 Últimas avaliações</h2>
+    <div id="ultimas-lista">
+      <p class="empty-state">Nenhuma avaliação registrada ainda.</p>
+    </div>
+    <div class="btn-row">
+      <a href="historico.html" class="btn btn-primary">Ver histórico completo →</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/utils.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const hist = getHistorico();
+    const provas = hist.filter(h => h.tipo === 'prova').length;
+    const trabalhos = hist.filter(h => h.tipo === 'trabalho').length;
+
+    document.getElementById('total-aval').textContent  = hist.length;
+    document.getElementById('total-provas').textContent = provas;
+    document.getElementById('total-trab').textContent   = trabalhos;
+
+    // Mostrar últimas 3
+    const ul = document.getElementById('ultimas-lista');
+    if (!hist.length) return;
+    ul.innerHTML = hist.slice(0, 3).map(h => `
+      <div class="hist-item">
+        <div>
+          <div class="hist-nome">${h.nome}</div>
+          <div class="hist-sub">${h.disc} · ${h.avTipo} · ${h.data}
+            <span class="tag ${h.tipo === 'prova' ? 'tag-prova' : 'tag-trabalho'}">
+              ${h.tipo === 'prova' ? '📋 Prova' : '📄 Trabalho'}
+            </span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-nota">${h.nota}</div>
+          <div class="hist-tipo">nota</div>
+        </div>
+      </div>`).join('');
+  });
+</script>
+</body>
+</html>

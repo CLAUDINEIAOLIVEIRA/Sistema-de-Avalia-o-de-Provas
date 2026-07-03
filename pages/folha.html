@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Folha de Respostas — FAETERJ</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .folha-preview {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fafafa;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #folha-imprimivel, #folha-imprimivel * { visibility: visible; }
+      #folha-imprimivel {
+        position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">🖨️</div>
+    <div>
+      <h1>Folha de Respostas para Impressão</h1>
+      <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a href="index.html">🏠 Início</a>
+    <a href="prova.html">📋 Prova objetiva</a>
+    <a href="trabalho.html">📄 Trabalho / Artigo</a>
+    <a href="historico.html">🕐 Histórico</a>
+  </nav>
+
+  <div class="card">
+    <h2>⚙️ Configurar folha</h2>
+    <p class="text-muted" style="margin-bottom:12px">
+      Gere e imprima uma folha para o aluno preencher à mão. Os 4 quadrados pretos nos cantos
+      são usados depois para alinhar a foto na leitura automática — não remova nem corte essas marcas.
+    </p>
+    <div class="grid2">
+      <div class="form-row"><label>Quantidade de questões</label>
+        <select id="f-qtd"></select>
+      </div>
+      <div class="form-row"><label>Disciplina</label><select id="f-disc"></select></div>
+    </div>
+    <div class="grid2">
+      <div class="form-row"><label>Nome do aluno *</label><input id="f-nome" type="text" required placeholder="Obrigatório"></div>
+      <div class="form-row"><label>Tipo de avaliação</label>
+        <select id="f-tipo"><option>P1</option><option>P2</option><option>2ª Chamada</option><option>Prova final</option></select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="form-row"><label>Professor (a) *</label><input id="f-professor" type="text" required placeholder="Obrigatório"></div>
+      <div class="form-row"><label>Período</label>
+        <select id="f-periodo">
+          <option value="">—</option>
+          <option>1º período</option><option>2º período</option>
+          <option>3º período</option><option>4º período</option>
+          <option>5º período</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="form-row"><label>Matrícula (opcional)</label><input id="f-matricula" type="text" placeholder="Deixe em branco para preencher à mão"></div>
+      <div class="form-row"><label>Valor da prova</label>
+        <select id="f-valor"><option value="10,0 pontos">10,0 pontos</option><option value="6,0 pontos">6,0 pontos</option><option value="4,0 pontos">4,0 pontos</option></select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="atualizarPreview()">🔄 Atualizar folha</button>
+      <button class="btn btn-green" onclick="imprimirFolha()">🖨️ Imprimir</button>
+      <a href="prova.html" class="btn">📋 Ir para correção</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👁️ Pré-visualização</h2>
+    <div class="folha-preview" id="folha-imprimivel"></div>
+  </div>
+
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/folha.js"></script>
+<script>
+  function camposObrigatoriosOk() {
+    const nome = document.getElementById('f-nome').value.trim();
+    const professor = document.getElementById('f-professor').value.trim();
+    if (!nome || !professor) {
+      alert('⚠️ Preencha o Nome do aluno e o Professor (a) — são campos obrigatórios.');
+      return false;
+    }
+    return true;
+  }
+
+  function atualizarPreview() {
+    const qtd = parseInt(document.getElementById('f-qtd').value);
+    const dados = {
+      nome: document.getElementById('f-nome').value,
+      disc: document.getElementById('f-disc').value,
+      avTipo: document.getElementById('f-tipo').value,
+      professor: document.getElementById('f-professor').value,
+      periodo: document.getElementById('f-periodo').value,
+      matricula: document.getElementById('f-matricula').value,
+      valor: document.getElementById('f-valor').value,
+      data: '' // fica em branco na folha impressa, para preencher à mão na hora
+    };
+    document.getElementById('folha-imprimivel').innerHTML = folhaSVG(qtd, dados);
+  }
+
+  function imprimirFolha() {
+    if (!camposObrigatoriosOk()) return;
+    atualizarPreview();
+    window.print();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    popularQuestoesSelect('f-qtd', 12, 12);
+    popularSelect('f-disc', DISCIPLINAS);
+    atualizarPreview();
+    ['f-qtd', 'f-disc', 'f-nome', 'f-tipo', 'f-professor', 'f-periodo', 'f-matricula', 'f-valor'].forEach(id =>
+      document.getElementById(id).addEventListener('change', atualizarPreview));
+  });
+</script>
+</body>
+</html>

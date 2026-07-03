@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico — FAETERJ</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .filtros {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filtros select,
+    .filtros input {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: #fafafa;
+      color: #333;
+    }
+    .filtros input { flex: 1; min-width: 150px; }
+    .stats-box {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat-mini {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-mini .num { font-size: 20px; font-weight: 700; color: #1a73e8; }
+    .stat-mini .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+    .empty-center { text-align: center; padding: 30px 0; color: #999; font-size: 13px; }
+    @media (max-width: 600px) {
+      .stats-box { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">🕐</div>
+    <div>
+      <h1>Histórico de Avaliações</h1>
+      <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
+    </div>
+  </div>
+
+  <!-- NAVEGAÇÃO -->
+  <nav class="nav">
+    <a href="index.html">🏠 Início</a>
+    <a href="prova.html">📋 Prova objetiva</a>
+    <a href="trabalho.html">📄 Trabalho / Artigo</a>
+    <a href="historico.html" class="active">🕐 Histórico</a>
+  </nav>
+
+  <!-- ESTATÍSTICAS -->
+  <div class="stats-box" id="stats-box">
+    <div class="stat-mini"><div class="num" id="s-total">0</div><div class="lbl">Total</div></div>
+    <div class="stat-mini"><div class="num" id="s-provas">0</div><div class="lbl">Provas</div></div>
+    <div class="stat-mini"><div class="num" id="s-trab">0</div><div class="lbl">Trabalhos</div></div>
+    <div class="stat-mini"><div class="num" id="s-hoje">0</div><div class="lbl">Hoje</div></div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="card">
+    <h2>🔍 Filtrar avaliações</h2>
+    <div class="filtros">
+      <input id="f-nome" type="text" placeholder="🔍 Buscar por nome do aluno..." oninput="filtrarHistorico()">
+      <select id="f-tipo" onchange="filtrarHistorico()">
+        <option value="">Todos os tipos</option>
+        <option value="prova">📋 Prova</option>
+        <option value="trabalho">📄 Trabalho</option>
+      </select>
+      <select id="f-disc" onchange="filtrarHistorico()">
+        <option value="">Todas as disciplinas</option>
+      </select>
+    </div>
+
+    <div id="historico-lista">
+      <p class="empty-center">Carregando...</p>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="exportarCSV()">📥 Exportar CSV</button>
+      <button class="btn btn-red" onclick="confirmarLimpar()">🗑️ Limpar histórico</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/utils.js"></script>
+<script>
+  let todosItens = [];
+
+  function confirmarLimpar() {
+    if (limparHistorico()) {
+      todosItens = [];
+      atualizarStats([]);
+      document.getElementById('historico-lista').innerHTML =
+        '<p class="empty-center">Histórico apagado.</p>';
+    }
+  }
+
+  function atualizarStats(itens) {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    document.getElementById('s-total').textContent  = itens.length;
+    document.getElementById('s-provas').textContent = itens.filter(h => h.tipo === 'prova').length;
+    document.getElementById('s-trab').textContent   = itens.filter(h => h.tipo === 'trabalho').length;
+    document.getElementById('s-hoje').textContent   = itens.filter(h => h.data === hoje).length;
+  }
+
+  function popularFiltroDisc(itens) {
+    const discs = [...new Set(itens.map(h => h.disc))].sort();
+    const sel = document.getElementById('f-disc');
+    sel.innerHTML = '<option value="">Todas as disciplinas</option>' +
+      discs.map(d => `<option value="${d}">${d}</option>`).join('');
+  }
+
+  function filtrarHistorico() {
+    const nome = document.getElementById('f-nome').value.toLowerCase();
+    const tipo = document.getElementById('f-tipo').value;
+    const disc = document.getElementById('f-disc').value;
+
+    const filtrados = todosItens.filter(h => {
+      const okNome = !nome || h.nome.toLowerCase().includes(nome);
+      const okTipo = !tipo || h.tipo === tipo;
+      const okDisc = !disc || h.disc === disc;
+      return okNome && okTipo && okDisc;
+    });
+
+    renderLista(filtrados);
+  }
+
+  function renderLista(itens) {
+    const el = document.getElementById('historico-lista');
+    if (!itens.length) {
+      el.innerHTML = '<p class="empty-center">Nenhuma avaliação encontrada com os filtros selecionados.</p>';
+      return;
+    }
+    el.innerHTML = itens.map((h, i) => `
+      <div class="hist-item">
+        <div>
+          <div class="hist-nome">${h.nome}</div>
+          <div class="hist-sub">
+            ${h.disc} · ${h.avTipo} · ${h.data}
+            <span class="tag ${h.tipo === 'prova' ? 'tag-prova' : 'tag-trabalho'}">
+              ${h.tipo === 'prova' ? '📋 Prova' : '📄 Trabalho'}
+            </span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-nota">${h.nota}</div>
+          <div class="hist-tipo">nota</div>
+        </div>
+      </div>`).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    todosItens = getHistorico();
+    atualizarStats(todosItens);
+    popularFiltroDisc(todosItens);
+
+    if (!todosItens.length) {
+      document.getElementById('historico-lista').innerHTML =
+        '<p class="empty-center">Nenhuma avaliação salva ainda.<br>Corrija uma prova ou trabalho e clique em "Salvar".</p>';
+    } else {
+      renderLista(todosItens);
+    }
+  });
+</script>
+</body>
+</html>
