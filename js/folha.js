@@ -30,18 +30,22 @@ function folhaLayout(qtd) {
   const gridYStart = 315;
   const gridYEnd = FOLHA_REF_H - 90;
 
-  const colWidth = (gridXEnd - gridXStart) / colunas;
+  // Largura "natural" de uma coluna (com 3 colunas, que é o caso mais cheio),
+  // usada como referência para centralizar o bloco quando há menos colunas.
+  const colWidth = (gridXEnd - gridXStart) / 3;
+  const blocoLargura = colunas * colWidth;
+  const gridXInicioBloco = gridXStart + (gridXEnd - gridXStart - blocoLargura) / 2;
   const rowHeight = Math.min(95, (gridYEnd - gridYStart) / linhas);
 
   const letras = ['a', 'b', 'c', 'd'];
-  const bubbleSpacing = 58;
-  const labelOffset = 46;
+  const bubbleSpacing = 48;
+  const labelOffset = 28;
 
   const bubbles = [];
   for (let i = 0; i < qtd; i++) {
     const col = Math.floor(i / linhas);
     const row = i % linhas;
-    const cx0 = gridXStart + col * colWidth + labelOffset;
+    const cx0 = gridXInicioBloco + col * colWidth + labelOffset;
     const cy = gridYStart + row * rowHeight + rowHeight / 2;
     letras.forEach((letra, li) => {
       bubbles.push({
