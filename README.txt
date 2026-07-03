@@ -50,8 +50,6 @@ FUNCIONALIDADES:
     • Escrita e normas ABNT (15%)
   - Sistema de estrelas (1-5) por critério
   - Cálculo automático da nota ponderada
-  - Análise com IA: gera feedback pedagógico automático
-    ao colar o texto do trabalho
 
 🕐 HISTÓRICO
   - Lista todas as avaliações salvas
@@ -62,6 +60,5 @@ FUNCIONALIDADES:
 OBSERVAÇÕES:
 ------------
 - Os dados ficam salvos no navegador (localStorage)
-- A análise com IA requer conexão com a internet
 - O CSV exportado pode ser aberto no Excel ou Google Sheets
 - Compatível com Chrome, Firefox, Edge e Safari

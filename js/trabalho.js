@@ -105,68 +105,6 @@ function calcularNota() {
   return total;
 }
 
-// ===== ANÁLISE COM IA =====
-
-async function analisarIA() {
-  const texto = document.getElementById('t-texto')?.value.trim();
-  const nome  = document.getElementById('t-nome')?.value  || 'aluno(a)';
-  const tipo  = document.getElementById('t-tipo')?.value  || 'trabalho';
-  const disc  = document.getElementById('t-disc')?.value  || 'disciplina';
-  const titulo = document.getElementById('t-titulo')?.value || 'trabalho';
-
-  if (!texto) {
-    alert('Cole o texto do trabalho antes de analisar.');
-    return;
-  }
-
-  const box = document.getElementById('ai-result');
-  if (!box) return;
-  box.innerHTML = '<span class="ai-loading">⏳ Analisando com IA... aguarde alguns segundos.</span>';
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `Você é a Professora Claudineia Moreira de Oliveira, da FAETERJ Barra Mansa, disciplina de ${disc}.
-
-Avalie o seguinte ${tipo} intitulado "${titulo}" do aluno(a) ${nome}:
-
-"${texto}"
-
-Forneça feedback pedagógico em português estruturado assim:
-
-**1. Pontos fortes:**
-(Liste 2-3 aspectos positivos do trabalho)
-
-**2. Pontos a melhorar:**
-(Liste 2-3 aspectos que precisam de atenção ou revisão)
-
-**3. Sugestão específica:**
-(Uma ação concreta e objetiva para melhorar o trabalho)
-
-**4. Nota sugerida:** X/10
-
-Use linguagem acadêmica, seja construtiva, direta e incentivadora.`
-        }]
-      })
-    });
-
-    const data = await response.json();
-    const texto_ia = data.content?.map(c => c.text || '').join('') || 'Não foi possível gerar análise.';
-    box.innerHTML = texto_ia
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
-
-  } catch (error) {
-    box.innerHTML = '<span style="color:#c5221f">❌ Erro ao conectar com a IA. Verifique sua conexão e tente novamente.</span>';
-  }
-}
-
 // ===== SALVAR TRABALHO NO HISTÓRICO =====
 
 function salvarTrabalho() {

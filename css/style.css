@@ -418,24 +418,6 @@ body {
   font-weight: 700;
 }
 
-/* ===== CAIXA IA ===== */
-.ai-box {
-  background: #f9f9f9;
-  border: 1px solid #4285f4;
-  border-radius: 6px;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 13px;
-  color: #333;
-  line-height: 1.6;
-  min-height: 80px;
-}
-
-.ai-loading {
-  color: #999;
-  font-style: italic;
-}
-
 /* ===== HISTÓRICO ===== */
 .hist-item {
   display: flex;
