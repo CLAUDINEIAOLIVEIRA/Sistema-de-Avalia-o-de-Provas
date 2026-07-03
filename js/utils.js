@@ -92,7 +92,7 @@ const DISCIPLINAS = [
   'Qualidade e Testes de Software',
   'Legislação Digital',
   'Programação e Web Design',
-  'Algoritmos e Linguagem de Programação I ',
+  'Algoritmos e Linguagem de Programação I',
   'Fundam. de Sistemas Operacionais',
   'Gestão Ambiental e Resp. Social',
   'Inglês Instrumental',
@@ -103,7 +103,7 @@ const DISCIPLINAS = [
   'Estatística Aplicada',
   'Fundamentos de Estruturas de Dados',
   'Fundamentos de Estrutura de Redes de Computadores',
-  "Metodologia de Pesquisa Científica",
+  'Metodologia de Pesquisa Científica',
   'Modelagem Conceitual de Dados',
   'Analise e Projeto de Sistemas',
   'Ética e Cidadania',
@@ -123,8 +123,11 @@ const DISCIPLINAS = [
   'Projeto Integrador II',
   'Qualidade e Teste de Software',
   'Segurança em Sistemas de Informação',
-
 ];
+
+// Mantém a lista sempre em ordem alfabética, mesmo que uma disciplina
+// nova seja adicionada fora de ordem no array acima.
+DISCIPLINAS.sort((a, b) => a.trim().localeCompare(b.trim(), 'pt-BR'));
 
 function popularSelect(selectId, opcoes, selecionado) {
   const el = document.getElementById(selectId);
