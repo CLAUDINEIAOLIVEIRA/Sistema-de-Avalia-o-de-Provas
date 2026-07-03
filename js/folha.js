@@ -25,8 +25,8 @@ function folhaLayout(qtd) {
   const colunas = qtd <= 10 ? 1 : (qtd <= 20 ? 2 : 3);
   const linhas = Math.ceil(qtd / colunas);
 
-  const gridXStart = 95;
-  const gridXEnd = FOLHA_REF_W - 95;
+  const gridXStart = 80;
+  const gridXEnd = FOLHA_REF_W - 80;
   const gridYStart = 315;
   const gridYEnd = FOLHA_REF_H - 90;
 
@@ -39,7 +39,7 @@ function folhaLayout(qtd) {
 
   const letras = ['a', 'b', 'c', 'd'];
   const bubbleSpacing = 48;
-  const labelOffset = 28;
+  const labelOffset = 40;
 
   const bubbles = [];
   for (let i = 0; i < qtd; i++) {
