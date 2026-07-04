@@ -18,6 +18,14 @@
       background: #fef7e0; border: 1px solid #fbbc04; color: #7a4f00;
       border-radius: 8px; padding: 12px 14px; font-size: 12px; margin-top: 14px;
     }
+    .esqueci-link {
+      display: block; text-align: center; font-size: 12px; color: #1a73e8;
+      margin-top: 14px; cursor: pointer; background: none; border: none;
+    }
+    .reset-box {
+      background: #fce8e6; border: 1px solid #ea4335; color: #7a1f1a;
+      border-radius: 8px; padding: 12px 14px; font-size: 12px; margin-top: 10px;
+    }
     .senha-wrap { position: relative; }
     .senha-wrap input { padding-right: 36px !important; }
     .senha-toggle {
@@ -55,6 +63,16 @@
       ⚠️ Ainda não há nenhum usuário cadastrado. Acesse o <a href="cadastro.html">Cadastro</a> para criar o primeiro
       usuário (com permissão TOTAL) antes de fazer login.
     </div>
+
+    <button type="button" class="esqueci-link" onclick="mostrarReset()">Esqueci a senha / não consigo entrar</button>
+    <div id="reset-box" class="reset-box hidden">
+      ⚠️ Isso vai <strong>apagar todos os usuários e logins</strong> cadastrados (professores, coordenação, direção,
+      secretaria) para você recomeçar o cadastro do zero. Os alunos e o histórico de avaliações <strong>não</strong>
+      são apagados.
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-red" onclick="resetarEquipe()">🗑️ Reiniciar cadastro de usuários</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -68,6 +86,19 @@
     const mostrando = input.type === 'text';
     input.type = mostrando ? 'password' : 'text';
     btn.textContent = mostrando ? '👁️' : '🙈';
+  }
+
+  function mostrarReset() {
+    document.getElementById('reset-box').classList.toggle('hidden');
+  }
+
+  function resetarEquipe() {
+    const confirmacao = prompt('Isso vai apagar TODOS os usuários e logins cadastrados. Essa ação não pode ser desfeita.\n\nPara confirmar, digite REINICIAR:');
+    if (confirmacao !== 'REINICIAR') return;
+    salvarProfessores([]);
+    authLogout();
+    alert('✅ Cadastro de usuários reiniciado. Agora acesse o Cadastro para criar o primeiro usuário novamente.');
+    window.location.href = 'cadastro.html';
   }
 
   function tentarLogin() {
