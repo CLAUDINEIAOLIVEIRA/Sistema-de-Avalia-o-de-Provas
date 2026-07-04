@@ -74,14 +74,24 @@ function cadastroNormalizar(s) {
 const ALIASES_ALUNO = {
   nome: ['nome', 'aluno', 'discente', 'estudante', 'nome do aluno', 'nome completo'],
   matricula: ['matricula', 'ra', 'registro', 'codigo', 'matricula do aluno'],
-  periodo: ['periodo', 'turma', 'semestre', 'serie']
+  periodo: ['periodo', 'turma', 'semestre', 'serie'],
+  disciplina: ['disciplina', 'disciplinas', 'materia', 'materias', 'curso']
 };
 const ALIASES_PROFESSOR = {
-  nome: ['nome', 'professor', 'docente', 'nome do professor']
+  nome: ['nome', 'professor', 'docente', 'nome do professor'],
+  disciplina: ['disciplina', 'disciplinas', 'materia', 'materias', 'curso']
 };
 
 function cadastroAcharColuna(headerNormalizado, aliases) {
   return headerNormalizado.findIndex(h => aliases.includes(h));
+}
+
+// Uma célula pode ter mais de uma disciplina separada por vírgula ou ponto e vírgula
+function cadastroParseDisciplinas(valor) {
+  if (!valor) return [];
+  const texto = String(valor);
+  const delim = texto.includes(';') ? ';' : ',';
+  return texto.split(delim).map(s => s.trim()).filter(Boolean);
 }
 
 // ===== LEITURA DE ARQUIVO =====
@@ -167,6 +177,7 @@ function cadastroMapearLinhasParaAlunos(linhas) {
   const temHeader = idxNome !== -1;
   const idxMatricula = temHeader ? cadastroAcharColuna(header, ALIASES_ALUNO.matricula) : 1;
   const idxPeriodo = temHeader ? cadastroAcharColuna(header, ALIASES_ALUNO.periodo) : 2;
+  const idxDisciplina = temHeader ? cadastroAcharColuna(header, ALIASES_ALUNO.disciplina) : 3;
   const nomeCol = temHeader ? idxNome : 0;
   const linhasDados = temHeader ? linhas.slice(1) : linhas;
 
@@ -174,7 +185,8 @@ function cadastroMapearLinhasParaAlunos(linhas) {
     .map(row => ({
       nome: String(row[nomeCol] ?? '').trim(),
       matricula: idxMatricula >= 0 ? String(row[idxMatricula] ?? '').trim() : '',
-      periodo: idxPeriodo >= 0 ? String(row[idxPeriodo] ?? '').trim() : ''
+      periodo: idxPeriodo >= 0 ? String(row[idxPeriodo] ?? '').trim() : '',
+      disciplinas: idxDisciplina >= 0 ? cadastroParseDisciplinas(row[idxDisciplina]) : []
     }))
     .filter(a => a.nome);
 }
@@ -184,11 +196,15 @@ function cadastroMapearLinhasParaProfessores(linhas) {
   const header = linhas[0].map(c => cadastroNormalizar(c));
   const idxNome = cadastroAcharColuna(header, ALIASES_PROFESSOR.nome);
   const temHeader = idxNome !== -1;
+  const idxDisciplina = temHeader ? cadastroAcharColuna(header, ALIASES_PROFESSOR.disciplina) : 1;
   const nomeCol = temHeader ? idxNome : 0;
   const linhasDados = temHeader ? linhas.slice(1) : linhas;
 
   return linhasDados
-    .map(row => ({ nome: String(row[nomeCol] ?? '').trim() }))
+    .map(row => ({
+      nome: String(row[nomeCol] ?? '').trim(),
+      disciplinas: idxDisciplina >= 0 ? cadastroParseDisciplinas(row[idxDisciplina]) : []
+    }))
     .filter(p => p.nome);
 }
 
@@ -197,14 +213,18 @@ function cadastroMapearXMLParaAlunos(registros) {
     .map(r => ({
       nome: cadastroPegarCampo(r, ALIASES_ALUNO.nome),
       matricula: cadastroPegarCampo(r, ALIASES_ALUNO.matricula),
-      periodo: cadastroPegarCampo(r, ALIASES_ALUNO.periodo)
+      periodo: cadastroPegarCampo(r, ALIASES_ALUNO.periodo),
+      disciplinas: cadastroParseDisciplinas(cadastroPegarCampo(r, ALIASES_ALUNO.disciplina))
     }))
     .filter(a => a.nome);
 }
 
 function cadastroMapearXMLParaProfessores(registros) {
   return registros
-    .map(r => ({ nome: cadastroPegarCampo(r, ALIASES_PROFESSOR.nome) }))
+    .map(r => ({
+      nome: cadastroPegarCampo(r, ALIASES_PROFESSOR.nome),
+      disciplinas: cadastroParseDisciplinas(cadastroPegarCampo(r, ALIASES_PROFESSOR.disciplina))
+    }))
     .filter(p => p.nome);
 }
 
