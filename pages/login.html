@@ -18,6 +18,13 @@
       background: #fef7e0; border: 1px solid #fbbc04; color: #7a4f00;
       border-radius: 8px; padding: 12px 14px; font-size: 12px; margin-top: 14px;
     }
+    .senha-wrap { position: relative; }
+    .senha-wrap input { padding-right: 36px !important; }
+    .senha-toggle {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      border: none; background: none; cursor: pointer; font-size: 15px;
+      padding: 4px 6px; line-height: 1;
+    }
   </style>
 </head>
 <body>
@@ -34,7 +41,12 @@
   <div class="card">
     <h2>🔐 Login</h2>
     <div class="form-row"><label>Usuário</label><input id="lg-usuario" type="text" placeholder="Seu usuário"></div>
-    <div class="form-row"><label>Senha</label><input id="lg-senha" type="password" placeholder="Sua senha"></div>
+    <div class="form-row"><label>Senha</label>
+      <div class="senha-wrap">
+        <input id="lg-senha" type="password" placeholder="Sua senha">
+        <button type="button" class="senha-toggle" onclick="alternarSenha('lg-senha', this)" title="Mostrar/ocultar senha">👁️</button>
+      </div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="tentarLogin()">Entrar</button>
     </div>
@@ -51,6 +63,13 @@
 <script src="../js/cadastro.js"></script>
 <script src="../js/auth.js"></script>
 <script>
+  function alternarSenha(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const mostrando = input.type === 'text';
+    input.type = mostrando ? 'password' : 'text';
+    btn.textContent = mostrando ? '👁️' : '🙈';
+  }
+
   function tentarLogin() {
     const usuario = document.getElementById('lg-usuario').value;
     const senha = document.getElementById('lg-senha').value;
