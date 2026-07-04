@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — FAETERJ</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .login-wrap {
+      max-width: 360px;
+      margin: 40px auto 0;
+    }
+    .login-erro {
+      background: #fce8e6; border: 1px solid #ea4335; color: #c5221f;
+      border-radius: 6px; padding: 8px 10px; font-size: 12px; margin-top: 10px;
+    }
+    .login-bootstrap {
+      background: #fef7e0; border: 1px solid #fbbc04; color: #7a4f00;
+      border-radius: 8px; padding: 12px 14px; font-size: 12px; margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="app login-wrap">
+
+  <div class="header">
+    <div class="logo">🎓</div>
+    <div>
+      <h1>Sistema de Avaliação — FAETERJ</h1>
+      <p>Entrar no sistema</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔐 Login</h2>
+    <div class="form-row"><label>Usuário</label><input id="lg-usuario" type="text" placeholder="Seu usuário"></div>
+    <div class="form-row"><label>Senha</label><input id="lg-senha" type="password" placeholder="Sua senha"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="tentarLogin()">Entrar</button>
+    </div>
+    <div id="lg-erro" class="login-erro hidden"></div>
+    <div id="lg-bootstrap" class="login-bootstrap hidden">
+      ⚠️ Ainda não há nenhum usuário cadastrado. Acesse o <a href="cadastro.html">Cadastro</a> para criar o primeiro
+      usuário (com permissão TOTAL) antes de fazer login.
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/cadastro.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  function tentarLogin() {
+    const usuario = document.getElementById('lg-usuario').value;
+    const senha = document.getElementById('lg-senha').value;
+    const erro = document.getElementById('lg-erro');
+    if (authFazerLogin(usuario, senha)) {
+      window.location.href = 'index.html';
+      return;
+    }
+    erro.textContent = '❌ Usuário ou senha incorretos.';
+    erro.classList.remove('hidden');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (authGetSessao()) { window.location.href = 'index.html'; return; }
+    if (!authExisteEquipeComLogin()) {
+      document.getElementById('lg-bootstrap').classList.remove('hidden');
+    }
+    document.getElementById('lg-senha').addEventListener('keydown', e => {
+      if (e.key === 'Enter') tentarLogin();
+    });
+  });
+</script>
+</body>
+</html>

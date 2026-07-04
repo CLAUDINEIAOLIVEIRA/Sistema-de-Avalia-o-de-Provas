@@ -47,15 +47,21 @@
     .disciplina-item input[type="checkbox"] {
       width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer;
     }
+    .bootstrap-aviso {
+      background: #fef7e0; border: 1px solid #fbbc04; color: #7a4f00;
+      border-radius: 8px; padding: 12px 14px; font-size: 12px; margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
 <div class="app">
 
+  <div class="auth-indicador" id="auth-indicador"></div>
+
   <div class="header">
     <div class="logo">🗂️</div>
     <div>
-      <h1>Cadastro de Alunos e Professores</h1>
+      <h1>Cadastro de Alunos e Equipe</h1>
       <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
     </div>
   </div>
@@ -67,6 +73,12 @@
     <a href="cadastro.html" class="active">🗂️ Cadastro</a>
     <a href="historico.html">🕐 Histórico</a>
   </nav>
+
+  <div id="bootstrap-aviso" class="bootstrap-aviso hidden">
+    ⚠️ <strong>Primeiro acesso:</strong> ainda não há nenhum usuário com login cadastrado.
+    Cadastre o primeiro membro da equipe abaixo com permissão <strong>TOTAL</strong> — depois disso,
+    o cadastro passa a exigir login.
+  </div>
 
   <!-- ALUNOS -->
   <div class="card">
@@ -115,25 +127,50 @@
     </div>
   </div>
 
-  <!-- PROFESSORES -->
+  <!-- EQUIPE / USUÁRIOS DO SISTEMA -->
   <div class="card">
-    <h2>👩‍🏫 Professores</h2>
+    <h2>👥 Equipe / Usuários do Sistema</h2>
     <p class="text-muted" style="margin-bottom:10px">
-      Cadastre os professores da escola para selecionar o nome em vez de digitar (útil quando mais de um professor usa o sistema).
+      Professores, coordenação, direção e secretaria com login para acessar o sistema.
+      <strong>TOTAL</strong> pode cadastrar, excluir e criar login de qualquer pessoa.
+      <strong>PARCIAL</strong> só acessa as telas do dia a dia (ex: professor lançando gabaritos/respostas).
     </p>
 
-    <div class="form-row"><label>Nome do professor(a) *</label><input id="ca-prof-nome" type="text" required placeholder="Nome completo"></div>
-    <div class="form-row">
-      <label>Disciplinas que leciona *</label>
-      <div class="disciplinas-check" id="ca-disciplinas-professor"></div>
+    <div class="grid2">
+      <div class="form-row"><label>Nome *</label><input id="ca-prof-nome" type="text" required placeholder="Nome completo"></div>
+      <div class="form-row"><label>Papel *</label>
+        <select id="ca-prof-papel" required>
+          <option>Professor</option>
+          <option>Coordenação</option>
+          <option>Diretor</option>
+          <option>Secretaria</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="form-row"><label>Permissão *</label>
+        <select id="ca-prof-permissao" required>
+          <option value="PARCIAL">PARCIAL — acessa e usa o sistema</option>
+          <option value="TOTAL">TOTAL — cadastra, exclui e cria login</option>
+        </select>
+      </div>
+      <div class="form-row" id="ca-prof-disciplinas-row">
+        <label>Disciplinas *</label>
+        <div class="disciplinas-check" id="ca-disciplinas-professor"></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="form-row"><label>Usuário (login) *</label><input id="ca-prof-usuario" type="text" required placeholder="Ex: claudineia.oliveira"></div>
+      <div class="form-row"><label>Senha *</label><input id="ca-prof-senha" type="password" required placeholder="Senha de acesso"></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="cadastrarProfessorManual()">➕ Adicionar professor(a)</button>
+      <button class="btn btn-primary" onclick="cadastrarProfessorManual()">➕ Adicionar à equipe</button>
     </div>
 
     <div class="section-label" style="margin-top:16px">📁 Importar lista de professores (.xlsx, .csv ou .xml)</div>
     <p class="text-muted" style="margin-bottom:8px">
       Colunas/tags aceitas: Nome, Disciplina(s) — separe por vírgula ou ponto e vírgula se houver mais de uma.
+      A importação em lote cadastra só nome/disciplinas; papel, permissão e login são definidos manualmente por segurança.
     </p>
     <div class="btn-row">
       <input type="file" id="ca-arquivo-professores" accept=".xlsx,.xls,.csv,.txt,.xml" style="max-width:260px">
@@ -144,7 +181,7 @@
     <div class="contagem" id="ca-contagem-professores"></div>
     <div class="lista-cadastro hidden" id="ca-lista-professores"></div>
     <div class="btn-row">
-      <button class="btn btn-red" onclick="limparProfessores()">🗑️ Limpar todos os professores</button>
+      <button class="btn btn-red" onclick="limparProfessores()">🗑️ Limpar toda a equipe</button>
     </div>
   </div>
 
@@ -153,6 +190,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../js/utils.js"></script>
 <script src="../js/cadastro.js"></script>
+<script src="../js/auth.js"></script>
 <script>
   function construirCheckboxDisciplinas(containerId) {
     const el = document.getElementById(containerId);
@@ -208,12 +246,13 @@
   function renderListaProfessores() {
     const professores = getProfessores();
     document.getElementById('ca-contagem-professores').textContent =
-      professores.length ? `${professores.length} professor(a)(es) cadastrado(s)` : '';
+      professores.length ? `${professores.length} membro(s) da equipe cadastrado(s)` : '';
 
     const lista = document.getElementById('ca-lista-professores');
     lista.classList.toggle('hidden', professores.length === 0);
     lista.innerHTML = professores.map((p, i) => {
-      const sub = formatarDisciplinas(p.disciplinas);
+      const partes = [p.papel, p.permissao, p.usuario ? ('login: ' + p.usuario) : null, formatarDisciplinas(p.disciplinas)];
+      const sub = partes.filter(Boolean).join(' · ');
       return `
       <div class="item-cadastro">
         <div>
@@ -223,6 +262,11 @@
         <button onclick="excluirProfessor(${i})" title="Remover">✕</button>
       </div>`;
     }).join('');
+  }
+
+  function atualizarVisibilidadeDisciplinasProfessor() {
+    const papel = document.getElementById('ca-prof-papel').value;
+    document.getElementById('ca-prof-disciplinas-row').classList.toggle('hidden', papel !== 'Professor');
   }
 
   function cadastrarAlunoManual() {
@@ -285,14 +329,33 @@
 
   function cadastrarProfessorManual() {
     const nome = document.getElementById('ca-prof-nome').value.trim();
-    if (!nome) { alert('⚠️ Informe o nome do professor(a).'); return; }
+    const papel = document.getElementById('ca-prof-papel').value;
+    const permissao = document.getElementById('ca-prof-permissao').value;
+    const usuario = document.getElementById('ca-prof-usuario').value.trim();
+    const senha = document.getElementById('ca-prof-senha').value;
     const disciplinas = lerDisciplinasMarcadas('ca-disciplinas-professor');
-    if (!disciplinas.length) {
+
+    if (!nome || !usuario || !senha) {
+      alert('⚠️ Nome, usuário e senha são obrigatórios.');
+      return;
+    }
+    if (papel === 'Professor' && !disciplinas.length) {
       alert('⚠️ Selecione ao menos uma disciplina.');
       return;
     }
-    adicionarProfessor({ nome, disciplinas });
+    const jaExiste = getProfessores().some(p => p.usuario && p.usuario.toLowerCase() === usuario.toLowerCase());
+    if (jaExiste) {
+      alert('⚠️ Já existe alguém cadastrado com esse usuário. Escolha outro.');
+      return;
+    }
+
+    adicionarProfessor({ nome, papel, permissao, usuario, senha, disciplinas });
     document.getElementById('ca-prof-nome').value = '';
+    document.getElementById('ca-prof-usuario').value = '';
+    document.getElementById('ca-prof-senha').value = '';
+    document.getElementById('ca-prof-papel').value = 'Professor';
+    document.getElementById('ca-prof-permissao').value = 'PARCIAL';
+    atualizarVisibilidadeDisciplinasProfessor();
     limparDisciplinasMarcadas('ca-disciplinas-professor');
     renderListaProfessores();
   }
@@ -304,7 +367,7 @@
 
   function limparProfessores() {
     if (!getProfessores().length) return;
-    if (confirm('Tem certeza que deseja remover todos os professores cadastrados?')) {
+    if (confirm('Tem certeza que deseja remover todos os membros da equipe cadastrados? Isso vai remover todos os logins também.')) {
       salvarProfessores([]);
       renderListaProfessores();
     }
@@ -328,11 +391,18 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    const acesso = authProtegerPagina({ exigirTotal: true, permitirBootstrap: true });
+    if (!acesso) return;
+    document.getElementById('bootstrap-aviso').classList.toggle('hidden', !acesso.bootstrap);
+    authRenderIndicador('auth-indicador');
+
     construirCheckboxDisciplinas('ca-disciplinas-aluno');
     construirCheckboxDisciplinas('ca-disciplinas-professor');
     renderListaAlunos('');
     renderListaProfessores();
     document.getElementById('ca-busca-alunos').addEventListener('input', e => renderListaAlunos(e.target.value));
+    document.getElementById('ca-prof-papel').addEventListener('change', atualizarVisibilidadeDisciplinasProfessor);
+    atualizarVisibilidadeDisciplinasProfessor();
   });
 </script>
 </body>

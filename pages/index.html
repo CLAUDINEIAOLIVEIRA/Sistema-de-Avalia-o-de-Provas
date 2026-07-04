@@ -81,6 +81,8 @@
 <body>
 <div class="app">
 
+  <div class="auth-indicador" id="auth-indicador"></div>
+
   <div class="header">
     <div class="logo">🎓</div>
     <div>
@@ -142,8 +144,15 @@
 </div>
 
 <script src="../js/utils.js"></script>
+<script src="../js/cadastro.js"></script>
+<script src="../js/auth.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const acesso = authProtegerPagina({});
+    if (!acesso) return;
+    authRenderIndicador('auth-indicador');
+    authAplicarRestricoesUI(acesso.sessao);
+
     const hist = getHistorico();
     const provas = hist.filter(h => h.tipo === 'prova').length;
     const trabalhos = hist.filter(h => h.tipo === 'trabalho').length;
