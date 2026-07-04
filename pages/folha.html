@@ -38,6 +38,7 @@
     <a href="index.html">🏠 Início</a>
     <a href="prova.html">📋 Prova objetiva</a>
     <a href="trabalho.html">📄 Trabalho / Artigo</a>
+    <a href="cadastro.html">🗂️ Cadastro</a>
     <a href="historico.html">🕐 Histórico</a>
   </nav>
 
@@ -54,13 +55,21 @@
       <div class="form-row"><label>Disciplina</label><select id="f-disc"></select></div>
     </div>
     <div class="grid2">
-      <div class="form-row"><label>Nome do aluno *</label><input id="f-nome" type="text" required placeholder="Obrigatório"></div>
+      <div class="form-row">
+        <label>Nome do aluno *</label>
+        <input id="f-nome" type="text" list="lista-alunos" required placeholder="Obrigatório">
+        <datalist id="lista-alunos"></datalist>
+      </div>
       <div class="form-row"><label>Tipo de avaliação</label>
         <select id="f-tipo"><option>P1</option><option>P2</option><option>2ª Chamada</option><option>Prova final</option></select>
       </div>
     </div>
     <div class="grid2">
-      <div class="form-row"><label>Professor (a) *</label><input id="f-professor" type="text" required placeholder="Obrigatório"></div>
+      <div class="form-row">
+        <label>Professor (a) *</label>
+        <input id="f-professor" type="text" list="lista-professores" required placeholder="Obrigatório">
+        <datalist id="lista-professores"></datalist>
+      </div>
       <div class="form-row"><label>Período</label>
         <select id="f-periodo">
           <option value="">—</option>
@@ -91,8 +100,20 @@
 </div>
 
 <script src="../js/utils.js"></script>
+<script src="../js/cadastro.js"></script>
 <script src="../js/folha.js"></script>
 <script>
+  function preencherDadosAlunoCadastrado() {
+    const aluno = buscarAlunoPorNome(document.getElementById('f-nome').value.trim());
+    if (!aluno) return;
+    if (aluno.matricula) document.getElementById('f-matricula').value = aluno.matricula;
+    if (aluno.periodo) {
+      const sel = document.getElementById('f-periodo');
+      if (Array.from(sel.options).some(o => o.value === aluno.periodo)) sel.value = aluno.periodo;
+    }
+    atualizarPreview();
+  }
+
   function camposObrigatoriosOk() {
     const nome = document.getElementById('f-nome').value.trim();
     const professor = document.getElementById('f-professor').value.trim();
@@ -127,9 +148,12 @@
   document.addEventListener('DOMContentLoaded', () => {
     popularQuestoesSelect('f-qtd', 30, 30);
     popularSelect('f-disc', DISCIPLINAS);
+    popularDatalistAlunos('lista-alunos');
+    popularDatalistProfessores('lista-professores');
     atualizarPreview();
-    ['f-qtd', 'f-disc', 'f-nome', 'f-tipo', 'f-professor', 'f-periodo', 'f-matricula', 'f-valor'].forEach(id =>
+    ['f-qtd', 'f-disc', 'f-tipo', 'f-periodo', 'f-matricula', 'f-valor', 'f-professor'].forEach(id =>
       document.getElementById(id).addEventListener('change', atualizarPreview));
+    document.getElementById('f-nome').addEventListener('change', preencherDadosAlunoCadastrado);
   });
 </script>
 </body>

@@ -104,6 +104,7 @@
     <a href="index.html">🏠 Início</a>
     <a href="prova.html" class="active">📋 Prova objetiva</a>
     <a href="trabalho.html">📄 Trabalho / Artigo</a>
+    <a href="cadastro.html">🗂️ Cadastro</a>
     <a href="historico.html">🕐 Histórico</a>
   </nav>
 
@@ -119,7 +120,11 @@
   <div id="modo-individual">
     <div class="card">
       <h2>👤 Dados do aluno</h2>
-      <div class="form-row"><label>Nome do aluno</label><input id="p-nome" type="text" placeholder="Ex: Maria Silva"></div>
+      <div class="form-row">
+        <label>Nome do aluno</label>
+        <input id="p-nome" type="text" list="lista-alunos" placeholder="Ex: Maria Silva">
+        <datalist id="lista-alunos"></datalist>
+      </div>
       <div class="grid2">
         <div class="form-row"><label>Disciplina</label><select id="p-disc"></select></div>
         <div class="form-row"><label>Tipo de avaliação</label>
@@ -265,6 +270,7 @@
 </div>
 
 <script src="../js/utils.js"></script>
+<script src="../js/cadastro.js"></script>
 <script src="../js/folha.js"></script>
 <script src="../js/prova.js"></script>
 <script src="../js/leitura-template.js"></script>
@@ -447,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
   popularQuestoesSelect('p-qtd', 30, 30); popularQuestoesSelect('lote-qtd', 30, 30);
   buildGrids(); buildGridLote(); setDataHoje('p-data');
   popularSelect('p-disc', DISCIPLINAS); popularSelect('lote-disc', DISCIPLINAS);
+  popularDatalistAlunos('lista-alunos');
   initLeituraTemplate();
 });
 </script>

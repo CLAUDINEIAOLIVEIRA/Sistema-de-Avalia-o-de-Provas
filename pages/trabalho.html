@@ -23,6 +23,7 @@
     <a href="index.html">🏠 Início</a>
     <a href="prova.html">📋 Prova objetiva</a>
     <a href="trabalho.html" class="active">📄 Trabalho / Artigo</a>
+    <a href="cadastro.html">🗂️ Cadastro</a>
     <a href="historico.html">🕐 Histórico</a>
   </nav>
 
@@ -31,7 +32,8 @@
     <h2>👤 Dados do aluno e trabalho</h2>
     <div class="form-row">
       <label>Nome do aluno</label>
-      <input id="t-nome" type="text" placeholder="Ex: João da Silva">
+      <input id="t-nome" type="text" list="lista-alunos" placeholder="Ex: João da Silva">
+      <datalist id="lista-alunos"></datalist>
     </div>
     <div class="grid2">
       <div class="form-row">
@@ -102,6 +104,10 @@
 </div>
 
 <script src="../js/utils.js"></script>
+<script src="../js/cadastro.js"></script>
 <script src="../js/trabalho.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => popularDatalistAlunos('lista-alunos'));
+</script>
 </body>
 </html>
