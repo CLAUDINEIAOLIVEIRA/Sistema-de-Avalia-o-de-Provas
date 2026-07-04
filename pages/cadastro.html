@@ -89,7 +89,7 @@
       </select>
     </div>
     <div class="form-row">
-      <label>Disciplinas (opcional — usado para controle de acesso do professor no futuro)</label>
+      <label>Disciplinas *</label>
       <div class="disciplinas-check" id="ca-disciplinas-aluno"></div>
     </div>
     <div class="btn-row">
@@ -124,7 +124,7 @@
 
     <div class="form-row"><label>Nome do professor(a) *</label><input id="ca-prof-nome" type="text" required placeholder="Nome completo"></div>
     <div class="form-row">
-      <label>Disciplinas que leciona (opcional — usado para controle de acesso no futuro)</label>
+      <label>Disciplinas que leciona *</label>
       <div class="disciplinas-check" id="ca-disciplinas-professor"></div>
     </div>
     <div class="btn-row">
@@ -229,11 +229,15 @@
     const nome = document.getElementById('ca-nome').value.trim();
     const matricula = document.getElementById('ca-matricula').value.trim();
     const periodo = document.getElementById('ca-periodo').value;
+    const disciplinas = lerDisciplinasMarcadas('ca-disciplinas-aluno');
     if (!nome || !matricula || !periodo) {
       alert('⚠️ Nome, matrícula e período são obrigatórios.');
       return;
     }
-    const disciplinas = lerDisciplinasMarcadas('ca-disciplinas-aluno');
+    if (!disciplinas.length) {
+      alert('⚠️ Selecione ao menos uma disciplina.');
+      return;
+    }
     adicionarAluno({ nome, matricula, periodo, disciplinas });
     document.getElementById('ca-nome').value = '';
     document.getElementById('ca-matricula').value = '';
@@ -269,7 +273,9 @@
     try {
       const r = await importarAlunosDeArquivo(file);
       mostrarStatus('ca-status-alunos', 'ok',
-        `✅ ${r.adicionados} aluno(s) importado(s)` + (r.duplicados ? ` · ${r.duplicados} já cadastrado(s) (ignorado)` : ''));
+        `✅ ${r.adicionados} aluno(s) importado(s)`
+        + (r.duplicados ? ` · ${r.duplicados} já cadastrado(s) (ignorado)` : '')
+        + (r.incompletos ? ` · ${r.incompletos} sem matrícula/período/disciplina (ignorado)` : ''));
       input.value = '';
       renderListaAlunos('');
     } catch (err) {
@@ -279,8 +285,12 @@
 
   function cadastrarProfessorManual() {
     const nome = document.getElementById('ca-prof-nome').value.trim();
-    if (!nome) { alert('Informe o nome do professor(a).'); return; }
+    if (!nome) { alert('⚠️ Informe o nome do professor(a).'); return; }
     const disciplinas = lerDisciplinasMarcadas('ca-disciplinas-professor');
+    if (!disciplinas.length) {
+      alert('⚠️ Selecione ao menos uma disciplina.');
+      return;
+    }
     adicionarProfessor({ nome, disciplinas });
     document.getElementById('ca-prof-nome').value = '';
     limparDisciplinasMarcadas('ca-disciplinas-professor');
@@ -307,7 +317,9 @@
     try {
       const r = await importarProfessoresDeArquivo(file);
       mostrarStatus('ca-status-professores', 'ok',
-        `✅ ${r.adicionados} professor(a) importado(s)` + (r.duplicados ? ` · ${r.duplicados} já cadastrado(s) (ignorado)` : ''));
+        `✅ ${r.adicionados} professor(a) importado(s)`
+        + (r.duplicados ? ` · ${r.duplicados} já cadastrado(s) (ignorado)` : '')
+        + (r.incompletos ? ` · ${r.incompletos} sem disciplina (ignorado)` : ''));
       input.value = '';
       renderListaProfessores();
     } catch (err) {

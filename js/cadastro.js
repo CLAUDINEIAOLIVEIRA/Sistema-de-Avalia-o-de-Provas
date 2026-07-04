@@ -248,8 +248,12 @@ async function cadastroExtrairRegistros(file, mapearLinhas, mapearXML) {
 }
 
 async function importarAlunosDeArquivo(file) {
-  const novos = await cadastroExtrairRegistros(file, cadastroMapearLinhasParaAlunos, cadastroMapearXMLParaAlunos);
-  if (!novos.length) throw new Error('Nenhum aluno encontrado no arquivo.');
+  const todos = await cadastroExtrairRegistros(file, cadastroMapearLinhasParaAlunos, cadastroMapearXMLParaAlunos);
+  if (!todos.length) throw new Error('Nenhum aluno encontrado no arquivo.');
+
+  const novos = todos.filter(n => n.matricula && n.periodo && n.disciplinas && n.disciplinas.length);
+  const incompletos = todos.length - novos.length;
+  if (!novos.length) throw new Error('Nenhum aluno com matrícula, período e disciplina preenchidos no arquivo.');
 
   const atuais = getAlunos();
   const existentes = new Set(atuais.map(a => cadastroNormalizar(a.nome) + '|' + cadastroNormalizar(a.matricula)));
@@ -263,12 +267,16 @@ async function importarAlunosDeArquivo(file) {
     }
   });
   salvarAlunos(atuais);
-  return { total: novos.length, adicionados, duplicados: novos.length - adicionados };
+  return { total: novos.length, adicionados, duplicados: novos.length - adicionados, incompletos };
 }
 
 async function importarProfessoresDeArquivo(file) {
-  const novos = await cadastroExtrairRegistros(file, cadastroMapearLinhasParaProfessores, cadastroMapearXMLParaProfessores);
-  if (!novos.length) throw new Error('Nenhum professor encontrado no arquivo.');
+  const todos = await cadastroExtrairRegistros(file, cadastroMapearLinhasParaProfessores, cadastroMapearXMLParaProfessores);
+  if (!todos.length) throw new Error('Nenhum professor encontrado no arquivo.');
+
+  const novos = todos.filter(n => n.disciplinas && n.disciplinas.length);
+  const incompletos = todos.length - novos.length;
+  if (!novos.length) throw new Error('Nenhum professor com disciplina preenchida no arquivo.');
 
   const atuais = getProfessores();
   const existentes = new Set(atuais.map(p => cadastroNormalizar(p.nome)));
@@ -282,5 +290,5 @@ async function importarProfessoresDeArquivo(file) {
     }
   });
   salvarProfessores(atuais);
-  return { total: novos.length, adicionados, duplicados: novos.length - adicionados };
+  return { total: novos.length, adicionados, duplicados: novos.length - adicionados, incompletos };
 }
