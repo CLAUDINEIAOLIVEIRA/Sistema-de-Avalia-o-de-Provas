@@ -331,13 +331,15 @@ async function processarLeitura() {
     if (modoLeituraAtual === 'lote') {
       const file = arquivosLote[loteIndex];
       let acertos = 0;
+      const gabarito = [];
       for (let j = 1; j <= qtd; j++) {
         const gab = document.getElementById('lgab' + j)?.value || '';
+        gabarito.push(gab);
         if (gab && respostas[j - 1] && gab === respostas[j - 1]) acertos++;
       }
       const valor = parseFloat(document.getElementById('lote-valor').value);
       const nota = (acertos / qtd * valor).toFixed(1).replace('.', ',');
-      resultadosLote.push({ nome: nomeDoArquivo(file.name), arquivo: file.name, respostas, acertos, nota });
+      resultadosLote.push({ nome: nomeDoArquivo(file.name), arquivo: file.name, respostas, gabarito, acertos, nota });
       const st = document.getElementById('status-lote-' + loteIndex);
       if (st) st.innerHTML = '<span style="color:#137333;font-weight:600">' + acertos + '/' + qtd + ' · ' + nota + '</span>';
 
@@ -407,6 +409,15 @@ function onLoteSelecionado(input) {
 }
 async function processarLote() {
   if (!arquivosLote.length) return;
+  const qtdGab = parseInt(document.getElementById('lote-qtd').value);
+  const gabVazio = [];
+  for (let j = 1; j <= qtdGab; j++) {
+    if (!document.getElementById('lgab' + j)?.value) gabVazio.push(j);
+  }
+  if (gabVazio.length) {
+    alert('⚠️ Preencha o gabarito do lote antes de iniciar a leitura (faltam: Q' + gabVazio.join(', Q') + ').\n\nSe você ler as provas com o gabarito em branco, todo mundo sai com 0 acertos.');
+    return;
+  }
   modoLeituraAtual = 'lote';
   loteIndex = 0;
   resultadosLote = [];
@@ -440,6 +451,27 @@ async function avancarParaProximaDoLote() {
   finalizarLote();
 }
 
+function toggleDetalheLote(i) {
+  document.getElementById('lote-detalhe-' + i).classList.toggle('hidden');
+}
+
+function detalheLoteHTML(r) {
+  const linhas = r.gabarito.map((gab, j) => {
+    const resp = r.respostas[j] || '?';
+    const ok = gab && resp !== '?' && gab === resp;
+    return `<tr>
+      <td>Q${j + 1}</td>
+      <td style="color:#1a73e8;font-weight:600">${gab || '—'}</td>
+      <td style="font-weight:600">${resp}</td>
+      <td><span class="badge ${ok ? 'badge-ok' : 'badge-err'}">${ok ? '✓' : '✗'}</span></td>
+    </tr>`;
+  }).join('');
+  return `<table class="q-table">
+    <thead><tr><th>Questão</th><th>Gabarito</th><th>Aluno marcou</th><th>Resultado</th></tr></thead>
+    <tbody>${linhas}</tbody>
+  </table>`;
+}
+
 function finalizarLote() {
   document.getElementById('card-alinhamento').classList.add('hidden');
   modoLeituraAtual = null;
@@ -451,9 +483,18 @@ function finalizarLote() {
     '<div style="display:flex;gap:10px;margin-bottom:12px">' +
     '<div style="background:#e6f4ea;border:1px solid #34a853;border-radius:8px;padding:10px 16px;text-align:center"><div style="font-size:22px;font-weight:700;color:#137333">' + ok.length + '</div><div style="font-size:11px">Corrigidas</div></div>' +
     '<div style="background:#fce8e6;border:1px solid #ea4335;border-radius:8px;padding:10px 16px;text-align:center"><div style="font-size:22px;font-weight:700;color:#c5221f">' + resultadosLote.filter(r=>r.erro).length + '</div><div style="font-size:11px">Com erro</div></div></div>';
-  document.getElementById('lote-resultado-lista').innerHTML = resultadosLote.map(r => r.erro
+  document.getElementById('lote-resultado-lista').innerHTML = resultadosLote.map((r, i) => r.erro
     ? '<div class="batch-item"><div><div class="batch-nome">' + r.nome + '</div><div class="batch-sub">' + r.arquivo + '</div></div><span style="color:#c5221f;font-size:12px">❌ ' + r.erro + '</span></div>'
-    : '<div class="batch-item"><div><div class="batch-nome">' + r.nome + '</div><div class="batch-sub">' + r.acertos + '/' + qtd2 + ' acertos · ' + r.arquivo + '</div></div><div style="text-align:right"><div class="batch-nota">' + r.nota + '</div><div style="font-size:11px;color:#888">nota</div></div></div>'
+    : `<div class="batch-item" style="flex-direction:column;align-items:stretch">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="batch-nome">${r.nome}</div><div class="batch-sub">${r.acertos}/${qtd2} acertos · ${r.arquivo}</div></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="text-align:right"><div class="batch-nota">${r.nota}</div><div style="font-size:11px;color:#888">nota</div></div>
+            <button class="btn" style="padding:4px 8px;font-size:11px" onclick="toggleDetalheLote(${i})">👁️ Detalhes</button>
+          </div>
+        </div>
+        <div id="lote-detalhe-${i}" class="hidden" style="margin-top:10px">${detalheLoteHTML(r)}</div>
+      </div>`
   ).join('');
   document.getElementById('lote-resultados').classList.remove('hidden');
   document.getElementById('lote-resultados').scrollIntoView({ behavior: 'smooth' });
