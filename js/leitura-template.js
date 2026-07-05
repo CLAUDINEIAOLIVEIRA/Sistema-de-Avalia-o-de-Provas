@@ -6,11 +6,19 @@
    =========================== */
 
 // ===== LIMIARES DE DECISÃO (ajustáveis) =====
-const OMR_LIMIAR_BRANCO  = 195; // acima disso, bolha é considerada em branco
-const OMR_LIMIAR_AMBIGUO = 25;  // diferença mínima entre a mais escura e a 2ª mais escura
+// A leitura conta, dentro de cada bolha, quantos pixels são "escuros"
+// (tinta) em vez de calcular só a média — assim funciona bem mesmo com
+// rabisco/espiral que não preenche 100% da bolha, e com caneta azul
+// (que fica mais "clara" que preta em fórmulas de luminância comuns).
+const OMR_LIMIAR_PIXEL_ESCURO   = 170; // um pixel conta como "tinta" se for mais escuro que isso
+const OMR_LIMIAR_FRACAO_MARCADA = 0.18; // % mínima de pixels escuros pra bolha ser considerada marcada
+const OMR_LIMIAR_AMBIGUO        = 0.12; // diferença mínima (em %) entre a 1ª e a 2ª mais marcada
 
 // ===== TAMANHO MÁXIMO DA IMAGEM PROCESSADA (desempenho) =====
 const OMR_MAX_DIM = 1400;
+
+// ===== TEMPO MÁXIMO DE ESPERA AO CARREGAR UMA IMAGEM (arquivo corrompido/vazio) =====
+const OMR_TIMEOUT_CARREGAR_MS = 12000;
 
 // ===== ÁLGEBRA: HOMOGRAFIA DE 4 PONTOS =====
 
@@ -69,10 +77,33 @@ const ORDEM_CANTOS = ['Superior-esquerdo', 'Superior-direito', 'Inferior-direito
 // ===== CARREGAR IMAGEM =====
 
 function omrCarregarImagem(file) {
+  if (!file || !file.size) {
+    return Promise.reject(new Error(`O arquivo "${file ? file.name : ''}" está vazio ou corrompido. Tente enviar a foto novamente.`));
+  }
+
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
+    let resolvido = false;
+
+    const timeoutId = setTimeout(() => {
+      if (resolvido) return;
+      resolvido = true;
+      URL.revokeObjectURL(url);
+      reject(new Error(`A imagem "${file.name}" demorou demais para carregar — o arquivo pode estar corrompido. Tente enviar novamente.`));
+    }, OMR_TIMEOUT_CARREGAR_MS);
+
     img.onload = () => {
+      if (resolvido) return;
+      resolvido = true;
+      clearTimeout(timeoutId);
+
+      if (!img.naturalWidth || !img.naturalHeight) {
+        URL.revokeObjectURL(url);
+        reject(new Error(`Não foi possível ler a imagem "${file.name}" — o arquivo parece estar corrompido.`));
+        return;
+      }
+
       omrState.img = img;
       omrState.pontos = [];
 
@@ -99,7 +130,13 @@ function omrCarregarImagem(file) {
       URL.revokeObjectURL(url);
       resolve();
     };
-    img.onerror = () => reject(new Error('Não foi possível abrir a imagem.'));
+    img.onerror = () => {
+      if (resolvido) return;
+      resolvido = true;
+      clearTimeout(timeoutId);
+      URL.revokeObjectURL(url);
+      reject(new Error(`Não foi possível abrir o arquivo "${file.name}" — ele pode estar vazio ou corrompido.`));
+    };
     img.src = url;
   });
 }
@@ -169,29 +206,36 @@ function omrReiniciarPontos() {
 }
 
 // ===== AMOSTRAGEM DE ESCURECIMENTO DE UMA BOLHA =====
-
-function omrLuminanciaMedia(ix, iy, raio) {
+// Em vez de calcular a luminância MÉDIA da bolha inteira (que sai clara
+// demais quando a marcação é um rabisco/espiral que não cobre 100% da
+// área, ou quando a tinta é azul), conta a FRAÇÃO de pixels "escuros"
+// dentro do raio — muito mais tolerante a marcações reais de caneta.
+function omrFracaoMarcada(ix, iy, raio) {
   const { offCtx, offW, offH } = omrState;
   const r = Math.max(2, Math.round(raio));
   const x0 = Math.max(0, Math.round(ix - r));
   const y0 = Math.max(0, Math.round(iy - r));
   const x1 = Math.min(offW, Math.round(ix + r));
   const y1 = Math.min(offH, Math.round(iy + r));
-  if (x1 <= x0 || y1 <= y0) return 255;
+  if (x1 <= x0 || y1 <= y0) return 0;
 
   const data = offCtx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
-  let soma = 0, n = 0;
+  let escuros = 0, total = 0;
   const w = x1 - x0;
   for (let yy = y0; yy < y1; yy++) {
     for (let xx = x0; xx < x1; xx++) {
       const dx = xx - ix, dy = yy - iy;
       if (dx * dx + dy * dy > r * r) continue;
       const idx = ((yy - y0) * w + (xx - x0)) * 4;
-      const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-      soma += lum; n++;
+      // Brilho simples (média dos 3 canais, sem peso) — detecta tinta
+      // de qualquer cor (preta, azul etc.) melhor que luminância ponderada,
+      // que "clareia" demais tons de azul saturado.
+      const brilho = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+      if (brilho < OMR_LIMIAR_PIXEL_ESCURO) escuros++;
+      total++;
     }
   }
-  return n ? soma / n : 255;
+  return total ? escuros / total : 0;
 }
 
 // ===== LER TODAS AS BOLHAS DA FOLHA =====
@@ -217,14 +261,14 @@ function omrLerRespostas(qtd) {
       const centro = omrAplicar(H, b.x, b.y);
       const borda  = omrAplicar(H, b.x + FOLHA_BUBBLE_R, b.y);
       const raio = Math.max(3, Math.hypot(borda.x - centro.x, borda.y - centro.y) * 0.9);
-      return { letra: b.letra, lum: omrLuminanciaMedia(centro.x, centro.y, raio) };
+      return { letra: b.letra, fracao: omrFracaoMarcada(centro.x, centro.y, raio) };
     });
-    medidas.sort((a, b2) => a.lum - b2.lum);
+    medidas.sort((a, b2) => b2.fracao - a.fracao);
     const [mais, seg] = medidas;
 
-    if (mais.lum > OMR_LIMIAR_BRANCO) {
+    if (mais.fracao < OMR_LIMIAR_FRACAO_MARCADA) {
       respostas[q - 1] = '?'; // nada marcado
-    } else if (seg && (seg.lum - mais.lum) < OMR_LIMIAR_AMBIGUO) {
+    } else if (seg && (mais.fracao - seg.fracao) < OMR_LIMIAR_AMBIGUO) {
       respostas[q - 1] = '?'; // marcação ambígua
       duvidosas.push(q);
     } else {

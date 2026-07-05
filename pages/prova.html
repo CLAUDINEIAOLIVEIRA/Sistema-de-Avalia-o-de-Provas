@@ -303,11 +303,18 @@ async function iniciarAlinhamentoIndividual() {
   modoLeituraAtual = 'individual';
   document.getElementById('align-instrucoes').innerHTML =
     '💡 Clique nos 4 quadrados pretos da folha, na ordem: <strong>superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo</strong>.';
-  document.getElementById('ia-status-box').classList.add('hidden');
+  const statusBox = document.getElementById('ia-status-box');
+  statusBox.classList.add('hidden');
   document.getElementById('card-alinhamento').classList.remove('hidden');
-  await omrCarregarImagem(arquivoAtual);
-  omrReiniciarPontos();
-  document.getElementById('card-alinhamento').scrollIntoView({ behavior: 'smooth' });
+  try {
+    await omrCarregarImagem(arquivoAtual);
+    omrReiniciarPontos();
+    document.getElementById('card-alinhamento').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    statusBox.className = 'ia-status erro';
+    statusBox.innerHTML = '❌ <div><strong>Erro ao abrir o arquivo</strong><br><span style="font-size:12px">' + err.message + '</span></div>';
+    statusBox.classList.remove('hidden');
+  }
 }
 
 async function processarLeitura() {
@@ -335,11 +342,7 @@ async function processarLeitura() {
       if (st) st.innerHTML = '<span style="color:#137333;font-weight:600">' + acertos + '/' + qtd + ' · ' + nota + '</span>';
 
       loteIndex++;
-      if (loteIndex < arquivosLote.length) {
-        await avancarParaProximaDoLote();
-      } else {
-        finalizarLote();
-      }
+      await avancarParaProximaDoLote();
     } else {
       preencherRespostasLidas(respostas);
       statusBox.className = 'ia-status sucesso';
@@ -415,14 +418,26 @@ async function processarLote() {
 }
 
 async function avancarParaProximaDoLote() {
-  const file = arquivosLote[loteIndex];
-  const st = document.getElementById('status-lote-' + loteIndex);
-  if (st) st.innerHTML = '<span class="spin">⏳</span> Aguardando alinhamento...';
-  document.getElementById('align-instrucoes').innerHTML =
-    '💡 Prova ' + (loteIndex + 1) + ' de ' + arquivosLote.length + ' — <strong>' + nomeDoArquivo(file.name) + '</strong>. ' +
-    'Clique nos 4 quadrados pretos, na ordem: superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo.';
-  await omrCarregarImagem(file);
-  omrReiniciarPontos();
+  // Pula automaticamente arquivos que falharem ao carregar (corrompidos/vazios),
+  // registrando o erro, em vez de travar esperando uma imagem que nunca chega.
+  while (loteIndex < arquivosLote.length) {
+    const file = arquivosLote[loteIndex];
+    const st = document.getElementById('status-lote-' + loteIndex);
+    if (st) st.innerHTML = '<span class="spin">⏳</span> Aguardando alinhamento...';
+    document.getElementById('align-instrucoes').innerHTML =
+      '💡 Prova ' + (loteIndex + 1) + ' de ' + arquivosLote.length + ' — <strong>' + nomeDoArquivo(file.name) + '</strong>. ' +
+      'Clique nos 4 quadrados pretos, na ordem: superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo.';
+    try {
+      await omrCarregarImagem(file);
+      omrReiniciarPontos();
+      return;
+    } catch (err) {
+      resultadosLote.push({ nome: nomeDoArquivo(file.name), arquivo: file.name, erro: err.message });
+      if (st) st.innerHTML = '<span style="color:#c5221f">❌ ' + err.message + '</span>';
+      loteIndex++;
+    }
+  }
+  finalizarLote();
 }
 
 function finalizarLote() {
