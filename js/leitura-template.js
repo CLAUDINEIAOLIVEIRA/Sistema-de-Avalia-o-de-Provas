@@ -167,7 +167,16 @@ function omrBuscarCantoEmRegiao(x0, y0, x1, y1, raioJanela) {
   y0 = Math.max(0, Math.round(y0));
   x1 = Math.min(offW, Math.round(x1));
   y1 = Math.min(offH, Math.round(y1));
-  if (x1 - x0 <= raioJanela * 2 || y1 - y0 <= raioJanela * 2) return null;
+
+  // O marcador impresso é um quadrado PEQUENO e isolado (papel branco ao
+  // redor). Sombra, borda da mesa, espiral de caderno etc. também ficam
+  // escuros, mas costumam ser regiões GRANDES e contínuas. Por isso, em vez
+  // de procurar só "o ponto mais escuro" (que gruda em qualquer sombra
+  // grande), procuramos o ponto de maior CONTRASTE: escuro por dentro de um
+  // raio pequeno e claro logo ao redor (anel).
+  const raioAnelMax = Math.round(raioJanela * 2.2);
+  const raioAnelMin = Math.round(raioJanela * 1.5);
+  if (x1 - x0 <= raioAnelMax * 2 || y1 - y0 <= raioAnelMax * 2) return null;
 
   const w = x1 - x0, h = y1 - y0;
   const data = offCtx.getImageData(x0, y0, w, h).data;
@@ -176,18 +185,23 @@ function omrBuscarCantoEmRegiao(x0, y0, x1, y1, raioJanela) {
     return (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
   };
 
-  let melhor = null, melhorScore = -1;
+  let melhor = null, melhorScore = -Infinity;
   const passoCentro = 4, passoAmostra = 3;
-  for (let y = y0 + raioJanela; y < y1 - raioJanela; y += passoCentro) {
-    for (let x = x0 + raioJanela; x < x1 - raioJanela; x += passoCentro) {
-      let escuros = 0, total = 0;
-      for (let dy = -raioJanela; dy <= raioJanela; dy += passoAmostra) {
-        for (let dx = -raioJanela; dx <= raioJanela; dx += passoAmostra) {
-          if (brilho(x + dx, y + dy) < 70) escuros++;
-          total++;
+  for (let y = y0 + raioAnelMax; y < y1 - raioAnelMax; y += passoCentro) {
+    for (let x = x0 + raioAnelMax; x < x1 - raioAnelMax; x += passoCentro) {
+      let escurosDentro = 0, totalDentro = 0, escurosFora = 0, totalFora = 0;
+      for (let dy = -raioAnelMax; dy <= raioAnelMax; dy += passoAmostra) {
+        for (let dx = -raioAnelMax; dx <= raioAnelMax; dx += passoAmostra) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > raioAnelMax) continue;
+          const escuro = brilho(x + dx, y + dy) < 70;
+          if (dist <= raioJanela) { totalDentro++; if (escuro) escurosDentro++; }
+          else if (dist >= raioAnelMin) { totalFora++; if (escuro) escurosFora++; }
         }
       }
-      const score = total ? escuros / total : 0;
+      const fracDentro = totalDentro ? escurosDentro / totalDentro : 0;
+      const fracFora = totalFora ? escurosFora / totalFora : 0;
+      const score = fracDentro - fracFora; // alto = escuro isolado (marcador); baixo = mancha grande (sombra/fundo)
       if (score > melhorScore) { melhorScore = score; melhor = { x, y }; }
     }
   }
