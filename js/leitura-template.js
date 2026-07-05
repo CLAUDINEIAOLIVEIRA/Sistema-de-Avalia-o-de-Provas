@@ -21,6 +21,10 @@ const OMR_MAX_DIM = 1400;
 // ===== TEMPO MÁXIMO DE ESPERA AO CARREGAR UMA IMAGEM (arquivo corrompido/vazio) =====
 const OMR_TIMEOUT_CARREGAR_MS = 12000;
 
+// ===== DETECÇÃO AUTOMÁTICA DOS 4 CANTOS (marcadores pretos) =====
+const OMR_CONFIANCA_MINIMA_CANTO = 0.45; // abaixo disso, não confia na detecção automática
+const OMR_RAIO_DISTANCIA_ARRASTO = 26;   // distância (px no canvas visível) pra "pegar" um ponto já marcado
+
 // ===== ÁLGEBRA: HOMOGRAFIA DE 4 PONTOS =====
 
 function omrGaussSolve(A, b) {
@@ -70,7 +74,8 @@ const omrState = {
   offH: 0,
   alignCanvas: null,
   alignCtx: null,
-  pontos: [] // até 4 pontos, no espaço do alignCanvas
+  pontos: [], // até 4 pontos, no espaço do alignCanvas
+  arrastando: null // índice do ponto sendo arrastado, ou null
 };
 
 const ORDEM_CANTOS = ['Superior-esquerdo', 'Superior-direito', 'Inferior-direito', 'Inferior-esquerdo'];
@@ -126,7 +131,17 @@ function omrCarregarImagem(file) {
         alignCanvas.height = Math.round(larguraExibida * (omrState.offH / omrState.offW));
         omrState.alignCanvas = alignCanvas;
         omrState.alignCtx = alignCanvas.getContext('2d');
+
+        // Tenta detectar os 4 marcadores automaticamente, pra não depender
+        // da precisão do clique manual do professor.
+        const cantosAuto = omrDetectarCantos();
+        if (cantosAuto) {
+          const fx = alignCanvas.width / omrState.offW;
+          const fy = alignCanvas.height / omrState.offH;
+          omrState.pontos = cantosAuto.map(p => ({ x: p.x * fx, y: p.y * fy }));
+        }
         omrDesenharAlinhamento();
+        omrAtualizarStatusPontos(cantosAuto ? 'auto' : 'falhou');
       }
       URL.revokeObjectURL(url);
       resolve();
@@ -140,6 +155,79 @@ function omrCarregarImagem(file) {
     };
     img.src = url;
   });
+}
+
+// ===== DETECÇÃO AUTOMÁTICA DOS 4 MARCADORES PRETOS DOS CANTOS =====
+// Procura, em cada quadrante da folha, a janela mais "escura" (marcador
+// preto impresso) — evita depender da precisão do clique manual do professor.
+
+function omrBuscarCantoEmRegiao(x0, y0, x1, y1, raioJanela) {
+  const { offCtx, offW, offH } = omrState;
+  x0 = Math.max(0, Math.round(x0));
+  y0 = Math.max(0, Math.round(y0));
+  x1 = Math.min(offW, Math.round(x1));
+  y1 = Math.min(offH, Math.round(y1));
+  if (x1 - x0 <= raioJanela * 2 || y1 - y0 <= raioJanela * 2) return null;
+
+  const w = x1 - x0, h = y1 - y0;
+  const data = offCtx.getImageData(x0, y0, w, h).data;
+  const brilho = (lx, ly) => {
+    const idx = ((ly - y0) * w + (lx - x0)) * 4;
+    return (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+  };
+
+  let melhor = null, melhorScore = -1;
+  const passoCentro = 4, passoAmostra = 3;
+  for (let y = y0 + raioJanela; y < y1 - raioJanela; y += passoCentro) {
+    for (let x = x0 + raioJanela; x < x1 - raioJanela; x += passoCentro) {
+      let escuros = 0, total = 0;
+      for (let dy = -raioJanela; dy <= raioJanela; dy += passoAmostra) {
+        for (let dx = -raioJanela; dx <= raioJanela; dx += passoAmostra) {
+          if (brilho(x + dx, y + dy) < 70) escuros++;
+          total++;
+        }
+      }
+      const score = total ? escuros / total : 0;
+      if (score > melhorScore) { melhorScore = score; melhor = { x, y }; }
+    }
+  }
+  if (!melhor) return null;
+
+  // A busca em janela (passo 4px) tende a "grudar" na borda da região de
+  // busca quando há qualquer coisa escura por perto (sombra, borda da folha,
+  // fundo da mesa) em vez de cair exatamente no centro do marcador impresso.
+  // Refina o ponto calculando o centroide (média) dos pixels escuros numa
+  // janela um pouco maior ao redor do melhor ponto — isso "puxa" o ponto
+  // para o centro real do quadrado preto.
+  const rr = Math.round(raioJanela * 1.6);
+  const rx0 = Math.max(x0, Math.round(melhor.x - rr));
+  const ry0 = Math.max(y0, Math.round(melhor.y - rr));
+  const rx1 = Math.min(x1, Math.round(melhor.x + rr));
+  const ry1 = Math.min(y1, Math.round(melhor.y + rr));
+  let sx = 0, sy = 0, n = 0;
+  for (let y = ry0; y < ry1; y++) {
+    for (let x = rx0; x < rx1; x++) {
+      if (brilho(x, y) < 70) { sx += x; sy += y; n++; }
+    }
+  }
+  const centro = n ? { x: sx / n, y: sy / n } : melhor;
+  return { x: centro.x, y: centro.y, score: melhorScore };
+}
+
+// Retorna 4 pontos (espaço do offCanvas), na ordem de ORDEM_CANTOS, ou
+// null se não conseguir detectar todos os 4 com confiança mínima.
+function omrDetectarCantos() {
+  const { offW, offH } = omrState;
+  const raio = Math.max(6, Math.round(offW * 0.018));
+  const regioes = [
+    { x0: 0,           y0: 0,           x1: offW * 0.30, y1: offH * 0.18 }, // superior-esquerdo
+    { x0: offW * 0.70, y0: 0,           x1: offW,        y1: offH * 0.18 }, // superior-direito
+    { x0: offW * 0.70, y0: offH * 0.70, x1: offW,        y1: offH        }, // inferior-direito
+    { x0: 0,           y0: offH * 0.70, x1: offW * 0.30, y1: offH        }, // inferior-esquerdo
+  ];
+  const resultados = regioes.map(r => omrBuscarCantoEmRegiao(r.x0, r.y0, r.x1, r.y1, raio));
+  if (resultados.some(r => !r || r.score < OMR_CONFIANCA_MINIMA_CANTO)) return null;
+  return resultados.map(r => ({ x: r.x, y: r.y }));
 }
 
 // ===== DESENHAR CANVAS DE ALINHAMENTO (imagem + pontos marcados) =====
@@ -172,38 +260,118 @@ function omrDesenharAlinhamento() {
     ctx.strokeStyle = '#34a853';
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    omrDesenharGradeBolhas();
   }
 }
 
-// ===== CLIQUE NO CANVAS (marcar canto) =====
+// Descobre a quantidade de questões configurada na tela (individual ou lote)
+// pra poder desenhar a prévia da grade de bolhas sobre a foto.
+function omrQtdAtual() {
+  const idCampo = (typeof modoLeituraAtual !== 'undefined' && modoLeituraAtual === 'lote') ? 'lote-qtd' : 'p-qtd';
+  const el = document.getElementById(idCampo) || document.getElementById('p-qtd') || document.getElementById('lote-qtd');
+  return el ? (parseInt(el.value) || 0) : 0;
+}
 
-function omrClicarCanvas(evt) {
-  if (omrState.pontos.length >= 4) return;
+// Desenha, por cima da foto, um pontinho azul em cada posição de bolha
+// prevista pela homografia atual — assim o professor VÊ na hora se os 4
+// cantos estão bem alinhados (pontinhos caindo no centro de cada bolha
+// impressa) ou se precisam ser arrastados para o lugar certo.
+function omrDesenharGradeBolhas() {
+  const c = omrState.alignCanvas, ctx = omrState.alignCtx;
+  const qtd = omrQtdAtual();
+  if (!qtd) return;
+  try {
+    const layout = folhaLayout(qtd);
+    const fx = omrState.offW / c.width;
+    const fy = omrState.offH / c.height;
+    const dst = omrState.pontos.map(p => ({ x: p.x * fx, y: p.y * fy }));
+    const src = [layout.cantos.tl, layout.cantos.tr, layout.cantos.br, layout.cantos.bl];
+    const H = omrHomografia(src, dst);
+    ctx.fillStyle = 'rgba(66,133,244,0.95)';
+    layout.bubbles.forEach(b => {
+      const p = omrAplicar(H, b.x, b.y);
+      ctx.beginPath();
+      ctx.arc(p.x / fx, p.y / fy, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } catch (e) {
+    // qtd inválida/layout indisponível nesse momento — ignora a prévia
+  }
+}
+
+// ===== INTERAÇÃO NO CANVAS: clicar para marcar canto, ou arrastar um já marcado =====
+
+function omrCoordCanvas(evt) {
   const c = omrState.alignCanvas;
   const rect = c.getBoundingClientRect();
   const scaleX = c.width / rect.width;
   const scaleY = c.height / rect.height;
-  const x = (evt.clientX - rect.left) * scaleX;
-  const y = (evt.clientY - rect.top) * scaleY;
-  omrState.pontos.push({ x, y });
-  omrDesenharAlinhamento();
+  const clientX = evt.touches && evt.touches.length ? evt.touches[0].clientX : evt.clientX;
+  const clientY = evt.touches && evt.touches.length ? evt.touches[0].clientY : evt.clientY;
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+
+function omrPontoMaisProximo(x, y) {
+  let indice = -1, distancia = Infinity;
+  omrState.pontos.forEach((p, i) => {
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d < distancia) { distancia = d; indice = i; }
+  });
+  return { indice, distancia };
+}
+
+function omrAtualizarStatusPontos(modo) {
   const status = document.getElementById('pontos-status');
   if (status) {
-    status.textContent = omrState.pontos.length < 4
-      ? `${omrState.pontos.length}/4 cantos marcados — próximo: ${ORDEM_CANTOS[omrState.pontos.length]}`
-      : '4/4 cantos marcados — pronto para ler';
+    if (modo === 'auto') {
+      status.textContent = '✅ 4 cantos detectados automaticamente — confira e, se precisar, arraste algum ponto para ajustar';
+    } else if (modo === 'falhou') {
+      status.textContent = `Não consegui detectar os cantos automaticamente — marque manualmente: ${ORDEM_CANTOS[0]}`;
+    } else if (omrState.pontos.length < 4) {
+      status.textContent = `${omrState.pontos.length}/4 cantos marcados — próximo: ${ORDEM_CANTOS[omrState.pontos.length]}`;
+    } else {
+      status.textContent = '4/4 cantos marcados — arraste algum ponto pra ajustar, ou clique em "Ler bolhas"';
+    }
   }
   const btnLer = document.getElementById('btn-ler-bolhas');
   if (btnLer) btnLer.disabled = omrState.pontos.length !== 4;
 }
 
+function omrIniciarInteracao(evt) {
+  if (evt.cancelable) evt.preventDefault();
+  const { x, y } = omrCoordCanvas(evt);
+  if (omrState.pontos.length > 0) {
+    const { indice, distancia } = omrPontoMaisProximo(x, y);
+    if (distancia <= OMR_RAIO_DISTANCIA_ARRASTO) {
+      omrState.arrastando = indice;
+      return;
+    }
+  }
+  if (omrState.pontos.length < 4) {
+    omrState.pontos.push({ x, y });
+    omrDesenharAlinhamento();
+    omrAtualizarStatusPontos();
+  }
+}
+
+function omrMoverInteracao(evt) {
+  if (omrState.arrastando == null) return;
+  if (evt.cancelable) evt.preventDefault();
+  const { x, y } = omrCoordCanvas(evt);
+  omrState.pontos[omrState.arrastando] = { x, y };
+  omrDesenharAlinhamento();
+}
+
+function omrFinalizarInteracao() {
+  omrState.arrastando = null;
+}
+
 function omrReiniciarPontos() {
   omrState.pontos = [];
+  omrState.arrastando = null;
   omrDesenharAlinhamento();
-  const status = document.getElementById('pontos-status');
-  if (status) status.textContent = `0/4 cantos marcados — próximo: ${ORDEM_CANTOS[0]}`;
-  const btnLer = document.getElementById('btn-ler-bolhas');
-  if (btnLer) btnLer.disabled = true;
+  omrAtualizarStatusPontos();
 }
 
 // ===== AMOSTRAGEM DE ESCURECIMENTO DE UMA BOLHA =====
@@ -311,5 +479,11 @@ function mostrarPreview(file) {
 
 function initLeituraTemplate() {
   const c = document.getElementById('align-canvas');
-  if (c) c.addEventListener('click', omrClicarCanvas);
+  if (!c) return;
+  c.addEventListener('mousedown', omrIniciarInteracao);
+  c.addEventListener('mousemove', omrMoverInteracao);
+  window.addEventListener('mouseup', omrFinalizarInteracao);
+  c.addEventListener('touchstart', omrIniciarInteracao, { passive: false });
+  c.addEventListener('touchmove', omrMoverInteracao, { passive: false });
+  window.addEventListener('touchend', omrFinalizarInteracao);
 }

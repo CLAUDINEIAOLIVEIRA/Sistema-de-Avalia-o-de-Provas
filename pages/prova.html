@@ -258,7 +258,7 @@
   <div class="card hidden" id="card-alinhamento">
     <h2>🧭 Alinhar cantos da folha</h2>
     <div class="align-instrucoes" id="align-instrucoes">
-      💡 Clique nos 4 quadrados pretos da folha, na ordem: <strong>superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo</strong>.
+      💡 O sistema tenta marcar os 4 quadrados pretos automaticamente e mostra pontinhos <strong style="color:#4285f4">azuis</strong> em cima de cada bolha prevista. <strong>Confira se os pontinhos azuis caem bem no centro das bolhas</strong> — se não caírem, arraste os pontos vermelhos dos cantos até os quadrados pretos certos (os azuis se ajustam sozinhos). Se nenhum ponto vermelho aparecer, clique nos 4 cantos na ordem: <strong>superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo</strong>.
     </div>
     <div class="align-wrap"><canvas id="align-canvas"></canvas></div>
     <div class="pontos-status" id="pontos-status">0/4 cantos marcados</div>
@@ -302,13 +302,12 @@ async function iniciarAlinhamentoIndividual() {
   if (!arquivoAtual) return;
   modoLeituraAtual = 'individual';
   document.getElementById('align-instrucoes').innerHTML =
-    '💡 Clique nos 4 quadrados pretos da folha, na ordem: <strong>superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo</strong>.';
+    '💡 O sistema tenta marcar os 4 quadrados pretos automaticamente. Se algum ponto ficar torto, <strong>arraste-o</strong> até o centro certo. Se nenhum ponto aparecer, clique nos 4 cantos: superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo.';
   const statusBox = document.getElementById('ia-status-box');
   statusBox.classList.add('hidden');
   document.getElementById('card-alinhamento').classList.remove('hidden');
   try {
     await omrCarregarImagem(arquivoAtual);
-    omrReiniciarPontos();
     document.getElementById('card-alinhamento').scrollIntoView({ behavior: 'smooth' });
   } catch (err) {
     statusBox.className = 'ia-status erro';
@@ -437,10 +436,9 @@ async function avancarParaProximaDoLote() {
     if (st) st.innerHTML = '<span class="spin">⏳</span> Aguardando alinhamento...';
     document.getElementById('align-instrucoes').innerHTML =
       '💡 Prova ' + (loteIndex + 1) + ' de ' + arquivosLote.length + ' — <strong>' + nomeDoArquivo(file.name) + '</strong>. ' +
-      'Clique nos 4 quadrados pretos, na ordem: superior-esquerdo → superior-direito → inferior-direito → inferior-esquerdo.';
+      'Cantos detectados automaticamente quando possível — confira e arraste se precisar ajustar.';
     try {
       await omrCarregarImagem(file);
-      omrReiniciarPontos();
       return;
     } catch (err) {
       resultadosLote.push({ nome: nomeDoArquivo(file.name), arquivo: file.name, erro: err.message });
