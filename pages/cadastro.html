@@ -288,6 +288,14 @@
     document.getElementById('ca-prof-disciplinas-row').classList.toggle('hidden', papel !== 'Professor');
   }
 
+  // Sugere a permissão de acordo com o papel escolhido (ainda pode ser trocada manualmente).
+  // Diretor/Coordenação/Secretaria costumam precisar de TOTAL; Professor só do dia a dia (PARCIAL).
+  function sugerirPermissaoPorPapel() {
+    const papel = document.getElementById('ca-prof-papel').value;
+    const permissaoSelect = document.getElementById('ca-prof-permissao');
+    permissaoSelect.value = (papel === 'Professor') ? 'PARCIAL' : 'TOTAL';
+  }
+
   function cadastrarAlunoManual() {
     const nome = document.getElementById('ca-nome').value.trim();
     const matricula = document.getElementById('ca-matricula').value.trim();
@@ -421,7 +429,9 @@
     renderListaProfessores();
     document.getElementById('ca-busca-alunos').addEventListener('input', e => renderListaAlunos(e.target.value));
     document.getElementById('ca-prof-papel').addEventListener('change', atualizarVisibilidadeDisciplinasProfessor);
+    document.getElementById('ca-prof-papel').addEventListener('change', sugerirPermissaoPorPapel);
     atualizarVisibilidadeDisciplinasProfessor();
+    sugerirPermissaoPorPapel();
   });
 </script>
 </body>
