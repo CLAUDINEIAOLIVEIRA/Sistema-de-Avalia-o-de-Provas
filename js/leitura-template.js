@@ -11,8 +11,9 @@
 // rabisco/espiral que não preenche 100% da bolha, e com caneta azul
 // (que fica mais "clara" que preta em fórmulas de luminância comuns).
 const OMR_LIMIAR_PIXEL_ESCURO   = 170; // um pixel conta como "tinta" se for mais escuro que isso
-const OMR_LIMIAR_FRACAO_MARCADA = 0.18; // % mínima de pixels escuros pra bolha ser considerada marcada
-const OMR_LIMIAR_AMBIGUO        = 0.12; // diferença mínima (em %) entre a 1ª e a 2ª mais marcada
+const OMR_LIMIAR_FRACAO_MARCADA = 0.15; // % mínima de pixels escuros pra bolha ser considerada marcada
+const OMR_LIMIAR_AMBIGUO        = 0.06; // diferença mínima (em %) entre a 1ª e a 2ª mais marcada
+const OMR_FATOR_RAIO_AMOSTRA    = 1.3;  // multiplicador do raio da bolha na amostragem (tolera leve erro de alinhamento)
 
 // ===== TAMANHO MÁXIMO DA IMAGEM PROCESSADA (desempenho) =====
 const OMR_MAX_DIM = 1400;
@@ -259,8 +260,14 @@ function omrLerRespostas(qtd) {
     const bolhasQ = layout.bubbles.filter(b => b.questao === q);
     const medidas = bolhasQ.map(b => {
       const centro = omrAplicar(H, b.x, b.y);
-      const borda  = omrAplicar(H, b.x + FOLHA_BUBBLE_R, b.y);
-      const raio = Math.max(3, Math.hypot(borda.x - centro.x, borda.y - centro.y) * 0.9);
+      // Raio calculado nas direções X e Y (não só X) — mais preciso quando
+      // a foto tem perspectiva/rotação, já que a bolha deixa de ser um
+      // círculo perfeito na imagem.
+      const bordaX = omrAplicar(H, b.x + FOLHA_BUBBLE_R, b.y);
+      const bordaY = omrAplicar(H, b.x, b.y + FOLHA_BUBBLE_R);
+      const raioX = Math.hypot(bordaX.x - centro.x, bordaX.y - centro.y);
+      const raioY = Math.hypot(bordaY.x - centro.x, bordaY.y - centro.y);
+      const raio = Math.max(3, ((raioX + raioY) / 2) * OMR_FATOR_RAIO_AMOSTRA);
       return { letra: b.letra, fracao: omrFracaoMarcada(centro.x, centro.y, raio) };
     });
     medidas.sort((a, b2) => b2.fracao - a.fracao);
