@@ -486,6 +486,16 @@ body {
   color: #c5221f;
 }
 .auth-sair:hover { background: #fce8e6; }
+.auth-trocar-senha {
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #1a73e8;
+}
+.auth-trocar-senha:hover { background: #e8f0fe; }
 
 /* ===== UTILITÁRIOS ===== */
 .hidden { display: none; }

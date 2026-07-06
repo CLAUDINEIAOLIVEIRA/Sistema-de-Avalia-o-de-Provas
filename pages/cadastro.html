@@ -28,6 +28,7 @@
       border: none; background: none; color: #c5221f;
       cursor: pointer; font-size: 16px; padding: 2px 6px;
     }
+    .item-cadastro .btn-editar { color: #1a73e8; }
     .contagem { font-size: 12px; color: #888; margin-top: 8px; }
     .import-status {
       font-size: 12px; padding: 8px 10px; border-radius: 6px; margin-top: 8px;
@@ -112,7 +113,8 @@
       <div class="disciplinas-check" id="ca-disciplinas-aluno"></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="cadastrarAlunoManual()">➕ Adicionar aluno</button>
+      <button class="btn btn-primary" id="ca-btn-aluno" onclick="cadastrarAlunoManual()">➕ Adicionar aluno</button>
+      <button class="btn hidden" id="ca-btn-cancelar-aluno" onclick="cancelarEdicaoAluno()">Cancelar edição</button>
     </div>
 
     <div class="section-label" style="margin-top:16px">📁 Importar lista de alunos (.xlsx, .csv ou .xml)</div>
@@ -168,15 +170,20 @@
     </div>
     <div class="grid2">
       <div class="form-row"><label>Usuário (login) *</label><input id="ca-prof-usuario" type="text" required placeholder="Ex: claudineia.oliveira"></div>
-      <div class="form-row"><label>Senha *</label>
+      <div class="form-row"><label id="ca-prof-senha-label">Senha *</label>
         <div class="senha-wrap">
           <input id="ca-prof-senha" type="password" required placeholder="Senha de acesso">
           <button type="button" class="senha-toggle" onclick="alternarSenha('ca-prof-senha', this)" title="Mostrar/ocultar senha">👁️</button>
         </div>
       </div>
     </div>
+    <p class="text-muted" id="ca-prof-senha-dica" style="margin:-4px 0 10px;display:none">
+      Deixe a senha em branco para manter a senha atual. Você pode definir uma <strong>senha provisória</strong> aqui
+      e depois a pessoa troca sozinha pelo botão "🔑 Trocar senha" no topo da tela, com a própria senha atual.
+    </p>
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="cadastrarProfessorManual()">➕ Adicionar à equipe</button>
+      <button class="btn btn-primary" id="ca-btn-professor" onclick="cadastrarProfessorManual()">➕ Adicionar à equipe</button>
+      <button class="btn hidden" id="ca-btn-cancelar-professor" onclick="cancelarEdicaoProfessor()">Cancelar edição</button>
     </div>
 
     <div class="section-label" style="margin-top:16px">📁 Importar lista de professores (.xlsx, .csv ou .xml)</div>
@@ -257,7 +264,10 @@
           <div class="item-cadastro-nome">${a.nome}</div>
           ${sub ? `<div class="item-cadastro-sub">${sub}</div>` : ''}
         </div>
-        <button onclick="excluirAluno(${idxReal})" title="Remover">✕</button>
+        <div>
+          <button class="btn-editar" onclick="editarAluno(${idxReal})" title="Editar">✏️</button>
+          <button onclick="excluirAluno(${idxReal})" title="Remover">✕</button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -278,7 +288,10 @@
           <div class="item-cadastro-nome">${p.nome}</div>
           ${sub ? `<div class="item-cadastro-sub">${sub}</div>` : ''}
         </div>
-        <button onclick="excluirProfessor(${i})" title="Remover">✕</button>
+        <div>
+          <button class="btn-editar" onclick="editarProfessor(${i})" title="Editar">✏️</button>
+          <button onclick="excluirProfessor(${i})" title="Remover">✕</button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -296,6 +309,8 @@
     permissaoSelect.value = (papel === 'Professor') ? 'PARCIAL' : 'TOTAL';
   }
 
+  let edicaoAlunoIndice = null;
+
   function cadastrarAlunoManual() {
     const nome = document.getElementById('ca-nome').value.trim();
     const matricula = document.getElementById('ca-matricula').value.trim();
@@ -309,16 +324,46 @@
       alert('⚠️ Selecione ao menos uma disciplina.');
       return;
     }
-    adicionarAluno({ nome, matricula, periodo, disciplinas });
+    if (edicaoAlunoIndice !== null) {
+      atualizarAluno(edicaoAlunoIndice, { nome, matricula, periodo, disciplinas });
+    } else {
+      adicionarAluno({ nome, matricula, periodo, disciplinas });
+    }
+    cancelarEdicaoAluno();
+    renderListaAlunos(document.getElementById('ca-busca-alunos').value);
+  }
+
+  function editarAluno(indice) {
+    const a = getAlunos()[indice];
+    if (!a) return;
+    edicaoAlunoIndice = indice;
+    document.getElementById('ca-nome').value = a.nome || '';
+    document.getElementById('ca-matricula').value = a.matricula || '';
+    document.getElementById('ca-periodo').value = a.periodo || '';
+    limparDisciplinasMarcadas('ca-disciplinas-aluno');
+    (a.disciplinas || []).forEach(d => {
+      document.querySelectorAll('#ca-disciplinas-aluno input[type=checkbox]').forEach(cb => {
+        if (cb.value === d) cb.checked = true;
+      });
+    });
+    document.getElementById('ca-btn-aluno').textContent = '💾 Salvar alterações';
+    document.getElementById('ca-btn-cancelar-aluno').classList.remove('hidden');
+    document.getElementById('ca-nome').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function cancelarEdicaoAluno() {
+    edicaoAlunoIndice = null;
     document.getElementById('ca-nome').value = '';
     document.getElementById('ca-matricula').value = '';
     document.getElementById('ca-periodo').value = '';
     limparDisciplinasMarcadas('ca-disciplinas-aluno');
-    renderListaAlunos(document.getElementById('ca-busca-alunos').value);
+    document.getElementById('ca-btn-aluno').textContent = '➕ Adicionar aluno';
+    document.getElementById('ca-btn-cancelar-aluno').classList.add('hidden');
   }
 
   function excluirAluno(indice) {
     removerAluno(indice);
+    if (edicaoAlunoIndice === indice) cancelarEdicaoAluno();
     renderListaAlunos(document.getElementById('ca-busca-alunos').value);
   }
 
@@ -354,13 +399,20 @@
     }
   }
 
+  let edicaoProfessorIndice = null;
+
   function cadastrarProfessorManual() {
     const nome = document.getElementById('ca-prof-nome').value.trim();
     const papel = document.getElementById('ca-prof-papel').value;
     const permissao = document.getElementById('ca-prof-permissao').value;
     const usuario = document.getElementById('ca-prof-usuario').value.trim();
-    const senha = document.getElementById('ca-prof-senha').value;
+    const senhaDigitada = document.getElementById('ca-prof-senha').value;
     const disciplinas = lerDisciplinasMarcadas('ca-disciplinas-professor');
+    const professores = getProfessores();
+    const emEdicao = edicaoProfessorIndice !== null;
+
+    // Na edição, senha em branco = mantém a senha atual (não precisa redigitar).
+    const senha = senhaDigitada || (emEdicao ? professores[edicaoProfessorIndice].senha : '');
 
     if (!nome || !usuario || !senha) {
       alert('⚠️ Nome, usuário e senha são obrigatórios.');
@@ -370,13 +422,49 @@
       alert('⚠️ Selecione ao menos uma disciplina.');
       return;
     }
-    const jaExiste = getProfessores().some(p => p.usuario && p.usuario.toLowerCase() === usuario.toLowerCase());
+    const jaExiste = professores.some((p, i) =>
+      p.usuario && p.usuario.toLowerCase() === usuario.toLowerCase() && i !== edicaoProfessorIndice
+    );
     if (jaExiste) {
       alert('⚠️ Já existe alguém cadastrado com esse usuário. Escolha outro.');
       return;
     }
 
-    adicionarProfessor({ nome, papel, permissao, usuario, senha, disciplinas });
+    if (emEdicao) {
+      atualizarProfessor(edicaoProfessorIndice, { nome, papel, permissao, usuario, senha, disciplinas });
+    } else {
+      adicionarProfessor({ nome, papel, permissao, usuario, senha, disciplinas });
+    }
+    cancelarEdicaoProfessor();
+    renderListaProfessores();
+  }
+
+  function editarProfessor(indice) {
+    const p = getProfessores()[indice];
+    if (!p) return;
+    edicaoProfessorIndice = indice;
+    document.getElementById('ca-prof-nome').value = p.nome || '';
+    document.getElementById('ca-prof-papel').value = p.papel || 'Professor';
+    document.getElementById('ca-prof-permissao').value = p.permissao || 'PARCIAL';
+    document.getElementById('ca-prof-usuario').value = p.usuario || '';
+    document.getElementById('ca-prof-senha').value = '';
+    atualizarVisibilidadeDisciplinasProfessor();
+    limparDisciplinasMarcadas('ca-disciplinas-professor');
+    (p.disciplinas || []).forEach(d => {
+      document.querySelectorAll('#ca-disciplinas-professor input[type=checkbox]').forEach(cb => {
+        if (cb.value === d) cb.checked = true;
+      });
+    });
+    document.getElementById('ca-btn-professor').textContent = '💾 Salvar alterações';
+    document.getElementById('ca-btn-cancelar-professor').classList.remove('hidden');
+    document.getElementById('ca-prof-senha-dica').style.display = 'block';
+    document.getElementById('ca-prof-senha-label').textContent = 'Senha (opcional — deixe em branco pra manter)';
+    document.getElementById('ca-prof-senha').placeholder = 'Deixe em branco pra manter a atual';
+    document.getElementById('ca-prof-nome').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function cancelarEdicaoProfessor() {
+    edicaoProfessorIndice = null;
     document.getElementById('ca-prof-nome').value = '';
     document.getElementById('ca-prof-usuario').value = '';
     document.getElementById('ca-prof-senha').value = '';
@@ -384,11 +472,16 @@
     document.getElementById('ca-prof-permissao').value = 'PARCIAL';
     atualizarVisibilidadeDisciplinasProfessor();
     limparDisciplinasMarcadas('ca-disciplinas-professor');
-    renderListaProfessores();
+    document.getElementById('ca-btn-professor').textContent = '➕ Adicionar à equipe';
+    document.getElementById('ca-btn-cancelar-professor').classList.add('hidden');
+    document.getElementById('ca-prof-senha-dica').style.display = 'none';
+    document.getElementById('ca-prof-senha-label').textContent = 'Senha *';
+    document.getElementById('ca-prof-senha').placeholder = 'Senha de acesso';
   }
 
   function excluirProfessor(indice) {
     removerProfessor(indice);
+    if (edicaoProfessorIndice === indice) cancelarEdicaoProfessor();
     renderListaProfessores();
   }
 

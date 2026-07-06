@@ -97,6 +97,58 @@ function authRenderIndicador(containerId) {
   if (!sessao) { el.innerHTML = ''; return; }
   el.innerHTML = `
     <span class="auth-usuario">👤 ${sessao.nome} · ${sessao.papel} (${sessao.permissao})</span>
+    <button class="auth-trocar-senha" onclick="authAbrirTrocaSenha()" title="Trocar minha senha">🔑 Trocar senha</button>
     <button class="auth-sair" onclick="authFazerLogout()">Sair</button>
   `;
+}
+
+// ===== TROCAR A PRÓPRIA SENHA (útil pra quem recebeu uma senha provisória) =====
+// Qualquer pessoa logada pode trocar a própria senha a qualquer momento,
+// sem precisar de permissão TOTAL nem passar pelo Cadastro.
+
+function authAbrirTrocaSenha() {
+  if (document.getElementById('auth-modal-senha')) return; // já está aberto
+  const overlay = document.createElement('div');
+  overlay.id = 'auth-modal-senha';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:10px;padding:20px;max-width:320px;width:100%;">
+      <h3 style="margin:0 0 12px;font-size:16px;">🔑 Trocar minha senha</h3>
+      <div class="form-row"><label>Senha atual</label><input id="ts-atual" type="password" placeholder="Senha atual (ou a provisória)"></div>
+      <div class="form-row"><label>Nova senha</label><input id="ts-nova" type="password" placeholder="Nova senha"></div>
+      <div class="form-row"><label>Confirmar nova senha</label><input id="ts-confirma" type="password" placeholder="Repita a nova senha"></div>
+      <div id="ts-erro" style="color:#c5221f;font-size:12px;margin-top:4px;display:none"></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="authSalvarNovaSenha()">Salvar</button>
+        <button class="btn" onclick="authFecharTrocaSenha()">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('ts-atual').focus();
+}
+
+function authFecharTrocaSenha() {
+  const el = document.getElementById('auth-modal-senha');
+  if (el) el.remove();
+}
+
+function authSalvarNovaSenha() {
+  const sessao = authGetSessao();
+  if (!sessao) { authFecharTrocaSenha(); return; }
+  const atual = document.getElementById('ts-atual').value;
+  const nova = document.getElementById('ts-nova').value;
+  const confirma = document.getElementById('ts-confirma').value;
+  const erroEl = document.getElementById('ts-erro');
+  const mostrarErro = (msg) => { erroEl.textContent = msg; erroEl.style.display = 'block'; };
+
+  const profs = getProfessores();
+  const eu = profs.find(p => p.usuario && p.usuario.toLowerCase() === sessao.usuario.toLowerCase());
+  if (!eu || eu.senha !== atual) { mostrarErro('❌ Senha atual incorreta.'); return; }
+  if (!nova || nova.length < 4) { mostrarErro('⚠️ A nova senha deve ter pelo menos 4 caracteres.'); return; }
+  if (nova !== confirma) { mostrarErro('⚠️ A confirmação não confere com a nova senha.'); return; }
+
+  eu.senha = nova;
+  salvarProfessores(profs);
+  authFecharTrocaSenha();
+  alert('✅ Senha alterada com sucesso!');
 }

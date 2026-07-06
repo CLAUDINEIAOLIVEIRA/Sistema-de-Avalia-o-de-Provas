@@ -20,6 +20,11 @@ function adicionarAluno(aluno) {
   lista.push(aluno);
   salvarAlunos(lista);
 }
+function atualizarAluno(indice, aluno) {
+  const lista = getAlunos();
+  lista[indice] = aluno;
+  salvarAlunos(lista);
+}
 function removerAluno(indice) {
   const lista = getAlunos();
   lista.splice(indice, 1);
@@ -37,6 +42,11 @@ function salvarProfessores(lista) {
 function adicionarProfessor(professor) {
   const lista = getProfessores();
   lista.push(professor);
+  salvarProfessores(lista);
+}
+function atualizarProfessor(indice, professor) {
+  const lista = getProfessores();
+  lista[indice] = professor;
   salvarProfessores(lista);
 }
 function removerProfessor(indice) {
