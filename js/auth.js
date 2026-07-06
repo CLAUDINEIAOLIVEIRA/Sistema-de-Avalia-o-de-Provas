@@ -114,9 +114,9 @@ function authAbrirTrocaSenha() {
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:10px;padding:20px;max-width:320px;width:100%;">
       <h3 style="margin:0 0 12px;font-size:16px;">🔑 Trocar minha senha</h3>
-      <div class="form-row"><label>Senha atual</label><input id="ts-atual" type="password" placeholder="Senha atual (ou a provisória)"></div>
-      <div class="form-row"><label>Nova senha</label><input id="ts-nova" type="password" placeholder="Nova senha"></div>
-      <div class="form-row"><label>Confirmar nova senha</label><input id="ts-confirma" type="password" placeholder="Repita a nova senha"></div>
+      <div class="form-row"><label>Senha atual</label><input id="ts-atual" type="password" autocomplete="off" placeholder="Senha atual (ou a provisória)"></div>
+      <div class="form-row"><label>Nova senha</label><input id="ts-nova" type="password" autocomplete="new-password" placeholder="Nova senha"></div>
+      <div class="form-row"><label>Confirmar nova senha</label><input id="ts-confirma" type="password" autocomplete="new-password" placeholder="Repita a nova senha"></div>
       <div id="ts-erro" style="color:#c5221f;font-size:12px;margin-top:4px;display:none"></div>
       <div class="btn-row" style="margin-top:12px">
         <button class="btn btn-primary" onclick="authSalvarNovaSenha()">Salvar</button>
