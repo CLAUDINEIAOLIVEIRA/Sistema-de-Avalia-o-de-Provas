@@ -90,6 +90,7 @@
     <div class="btn-row">
       <button class="btn btn-primary" onclick="atualizarPreview()">🔄 Atualizar folha</button>
       <button class="btn btn-green" onclick="imprimirFolha()">🖨️ Imprimir</button>
+      <button class="btn" onclick="baixarFolhaComoImagem()">📥 Baixar para enviar (imagem)</button>
       <a href="prova.html" class="btn">📋 Ir para correção</a>
     </div>
   </div>
@@ -146,6 +147,46 @@
     if (!camposObrigatoriosOk()) return;
     atualizarPreview();
     window.print();
+  }
+
+  // Gera a folha como imagem PNG pra baixar e enviar por e-mail/WhatsApp
+  // pra secretaria (ou qualquer outra pessoa) imprimir — sem depender do
+  // diálogo de impressão do navegador de quem está gerando a folha.
+  function baixarFolhaComoImagem() {
+    if (!camposObrigatoriosOk()) return;
+    atualizarPreview();
+
+    const svgOriginal = document.querySelector('#folha-imprimivel svg');
+    const svgClone = svgOriginal.cloneNode(true);
+    svgClone.setAttribute('width', FOLHA_REF_W);
+    svgClone.setAttribute('height', FOLHA_REF_H);
+    const svgData = new XMLSerializer().serializeToString(svgClone);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.onload = () => {
+      const escala = 3; // resolução maior pra imprimir com boa qualidade
+      const canvas = document.createElement('canvas');
+      canvas.width = FOLHA_REF_W * escala;
+      canvas.height = FOLHA_REF_H * escala;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(blob => {
+        const nome = (document.getElementById('f-nome').value || 'folha').trim().replace(/[^\p{L}\p{N}]+/gu, '_');
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `folha_resposta_${nome}.png`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }, 'image/png');
+    };
+    img.onerror = () => alert('❌ Não foi possível gerar a imagem da folha. Tente novamente.');
+    img.src = url;
   }
 
   document.addEventListener('DOMContentLoaded', () => {
