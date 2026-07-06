@@ -85,7 +85,12 @@
   <div id="bootstrap-aviso" class="bootstrap-aviso hidden">
     ⚠️ <strong>Primeiro acesso:</strong> ainda não há nenhum usuário com login cadastrado.
     Cadastre o primeiro membro da equipe abaixo com permissão <strong>TOTAL</strong> — depois disso,
-    o cadastro passa a exigir login.
+    o cadastro passa a exigir login. Como esta página fica aberta na internet, é preciso o
+    <strong>código de instalação</strong> pra criar esse primeiro usuário (evita que qualquer pessoa se cadastre sozinha).
+    <div class="form-row" style="margin-top:8px">
+      <label>Código de instalação *</label>
+      <input id="ca-codigo-instalacao" type="password" autocomplete="off" placeholder="Peça a quem configurou o sistema">
+    </div>
   </div>
 
   <!-- ALUNOS -->
@@ -428,6 +433,17 @@
     if (jaExiste) {
       alert('⚠️ Já existe alguém cadastrado com esse usuário. Escolha outro.');
       return;
+    }
+
+    // Cadastrar o PRIMEIRO usuário TOTAL (ninguém com login ainda) exige o
+    // código de instalação — sem isso, qualquer visitante do site conseguiria
+    // se auto-cadastrar como TOTAL antes de você configurar a equipe.
+    if (!emEdicao && !authExisteEquipeComLogin()) {
+      const codigo = document.getElementById('ca-codigo-instalacao').value;
+      if (codigo !== AUTH_CODIGO_INSTALACAO) {
+        alert('⚠️ Código de instalação incorreto. Peça o código a quem configurou o sistema.');
+        return;
+      }
     }
 
     if (emEdicao) {

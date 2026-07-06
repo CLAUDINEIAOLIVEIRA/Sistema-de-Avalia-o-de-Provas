@@ -14,6 +14,12 @@ const AUTH_CHAVE_SESSAO = 'faeterj-sessao';
 const PAPEIS_EQUIPE = ['Professor', 'Coordenação', 'Diretor', 'Secretaria'];
 const PERMISSOES_EQUIPE = ['TOTAL', 'PARCIAL'];
 
+// Código exigido pra cadastrar o PRIMEIRO usuário TOTAL (quando ainda não há
+// ninguém com login). Sem isso, qualquer pessoa que ache o site na internet
+// conseguiria se auto-cadastrar como TOTAL antes de você configurar a equipe.
+// Troque esse valor quando quiser (só quem edita o código sabe o novo).
+const AUTH_CODIGO_INSTALACAO = 'FAETERJBM-2026';
+
 // ===== SESSÃO =====
 
 function authGetSessao() {
