@@ -95,7 +95,7 @@ body.tem-sidebar .app {
   border-radius: 16px;
   background:
     linear-gradient(rgba(8, 20, 45, 0.6), rgba(8, 20, 45, 0.7)),
-    url('../img/faetec_barra_mansa.jpg') center/cover no-repeat;
+    url('../img/foto_unidade.jpeg') center 25% / cover no-repeat;
 }
 .hero-texto { flex: 1; min-width: 0; max-width: 720px; margin: 0 auto; }
 .hero-eyebrow {
