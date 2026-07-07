@@ -91,8 +91,8 @@ body.tem-sidebar .app {
   text-align: center;
   gap: 36px;
   padding: 64px 24px;
-  margin-bottom: 6px;
-  border-radius: 16px;
+  margin: 0 -28px 6px;
+  width: calc(100% + 56px);
   background:
     linear-gradient(rgba(8, 20, 45, 0.6), rgba(8, 20, 45, 0.7)),
     url('../img/foto_unidade.jpeg') center 25% / cover no-repeat;
