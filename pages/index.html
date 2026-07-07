@@ -6,6 +6,12 @@
   <title>Sistema de Avaliação — FAETERJ</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
+    .inicio-hero-wrap {
+      min-height: 56vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -34,20 +40,22 @@
   </div>
 
   <!-- BOAS-VINDAS -->
-  <div class="hero-inicio">
-    <div class="hero-texto">
-      <div class="hero-eyebrow">Sistema de Avaliação</div>
-      <h1 class="hero-titulo" id="hero-titulo">Bem-vindo(a) de volta!</h1>
-      <p class="hero-desc">Corrija provas objetivas e trabalhos por rubrica, cadastre alunos e equipe, e acompanhe
-        tudo pelo histórico de avaliações.</p>
+  <div class="inicio-hero-wrap">
+    <div class="hero-inicio">
+      <div class="hero-texto">
+        <div class="hero-eyebrow">Sistema de Avaliação</div>
+        <h1 class="hero-titulo" id="hero-titulo">Bem-vindo(a) de volta!</h1>
+        <p class="hero-desc">Corrija provas objetivas e trabalhos por rubrica, cadastre alunos e equipe, e acompanhe
+          tudo pelo histórico de avaliações.</p>
+      </div>
     </div>
-  </div>
 
-  <!-- ESTATÍSTICAS RÁPIDAS -->
-  <div class="stats-row" id="stats-row">
-    <div class="stat-card"><div class="stat-num" id="total-aval">0</div><div class="stat-lbl">Avaliações salvas</div></div>
-    <div class="stat-card"><div class="stat-num" id="total-provas">0</div><div class="stat-lbl">Provas corrigidas</div></div>
-    <div class="stat-card"><div class="stat-num" id="total-trab">0</div><div class="stat-lbl">Trabalhos avaliados</div></div>
+    <!-- ESTATÍSTICAS RÁPIDAS -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="stat-num" id="total-aval">0</div><div class="stat-lbl">Avaliações salvas</div></div>
+      <div class="stat-card"><div class="stat-num" id="total-provas">0</div><div class="stat-lbl">Provas corrigidas</div></div>
+      <div class="stat-card"><div class="stat-num" id="total-trab">0</div><div class="stat-lbl">Trabalhos avaliados</div></div>
+    </div>
   </div>
 
 </div>
