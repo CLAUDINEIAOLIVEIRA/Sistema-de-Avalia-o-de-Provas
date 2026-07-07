@@ -87,8 +87,6 @@
 <body>
 <div class="app">
 
-  <div class="auth-indicador" id="auth-indicador"></div>
-
   <div class="header">
     <img src="../img/logo_oficial_FAETERJ.jpeg" alt="Logo FAETERJ" class="logo">
     <div>
@@ -156,8 +154,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const acesso = authProtegerPagina({});
     if (!acesso) return;
-    authRenderIndicador('auth-indicador');
-    authAplicarRestricoesUI(acesso.sessao);
+    authRenderSidebar('index.html');
 
     const hist = getHistorico();
     const provas = hist.filter(h => h.tipo === 'prova').length;

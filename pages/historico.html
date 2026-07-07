@@ -46,8 +46,6 @@
 <body>
 <div class="app">
 
-  <div class="auth-indicador" id="auth-indicador"></div>
-
   <!-- HEADER -->
   <div class="header">
     <img src="../img/logo_oficial_FAETERJ.jpeg" alt="Logo FAETERJ" class="logo">
@@ -56,15 +54,6 @@
       <p>FAETERJ- Faculdade de Tecnologia do Estado do Rio de Janeiro</p>
     </div>
   </div>
-
-  <!-- NAVEGAÇÃO -->
-  <nav class="nav">
-    <a href="index.html">🏠 Início</a>
-    <a href="prova.html">📋 Prova objetiva</a>
-    <a href="trabalho.html">📄 Trabalho / Artigo</a>
-    <a href="cadastro.html">🗂️ Cadastro</a>
-    <a href="historico.html" class="active">🕐 Histórico</a>
-  </nav>
 
   <!-- ESTATÍSTICAS -->
   <div class="stats-box" id="stats-box">
@@ -173,8 +162,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const acesso = authProtegerPagina({});
     if (!acesso) return;
-    authRenderIndicador('auth-indicador');
-    authAplicarRestricoesUI(acesso.sessao);
+    authRenderSidebar('historico.html');
 
     todosItens = getHistorico();
     atualizarStats(todosItens);

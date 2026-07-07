@@ -88,24 +88,69 @@ function authProtegerPagina(opcoes) {
   return { sessao, bootstrap: false };
 }
 
-// ===== INDICADOR DE SESSÃO (cabeçalho) =====
+// ===== BARRA LATERAL (MENU) =====
+// Substitui o antigo indicador de topo + <nav> de cada página por um menu
+// lateral fixo (vira gaveta com botão ☰ no celular).
 
-// Esconde links/atalhos pro Cadastro de quem não tem permissão TOTAL
-function authAplicarRestricoesUI(sessao) {
-  if (!sessao || sessao.permissao === 'TOTAL') return;
-  document.querySelectorAll('a[href="cadastro.html"]').forEach(el => { el.style.display = 'none'; });
-}
+const AUTH_MENU_ITENS = [
+  { href: 'index.html',     icone: '🏠', label: 'Início' },
+  { href: 'prova.html',     icone: '📋', label: 'Prova objetiva' },
+  { href: 'trabalho.html',  icone: '📄', label: 'Trabalho / Artigo' },
+  { href: 'cadastro.html',  icone: '🗂️', label: 'Cadastro', exigeTotal: true },
+  { href: 'historico.html', icone: '🕐', label: 'Histórico' }
+];
 
-function authRenderIndicador(containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
+function authRenderSidebar(paginaAtual) {
   const sessao = authGetSessao();
-  if (!sessao) { el.innerHTML = ''; return; }
-  el.innerHTML = `
-    <span class="auth-usuario">👤 ${sessao.nome} · ${sessao.papel} (${sessao.permissao})</span>
-    <button class="auth-trocar-senha" onclick="authAbrirTrocaSenha()" title="Trocar minha senha">🔑 Trocar senha</button>
-    <button class="auth-sair" onclick="authFazerLogout()">Sair</button>
+  if (!sessao) return;
+  document.body.classList.add('tem-sidebar');
+
+  const iniciais = sessao.nome.trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+  const linksHTML = AUTH_MENU_ITENS
+    .filter(item => !item.exigeTotal || sessao.permissao === 'TOTAL')
+    .map(item => `<a href="${item.href}" class="${item.href === paginaAtual ? 'active' : ''}">${item.icone} ${item.label}</a>`)
+    .join('');
+
+  const sidebar = document.createElement('div');
+  sidebar.className = 'sidebar';
+  sidebar.innerHTML = `
+    <div class="sidebar-topo">
+      <img src="../img/logo_oficial_FAETERJ.jpeg" alt="Logo FAETERJ">
+      <span>Sistema de Avaliação<br>FAETERJ Barra Mansa</span>
+    </div>
+    <div class="sidebar-perfil">
+      <div class="sidebar-avatar">${iniciais}</div>
+      <div class="sidebar-perfil-info">
+        <div class="sidebar-perfil-nome">${sessao.nome}</div>
+        <div class="sidebar-perfil-papel">${sessao.papel} · ${sessao.permissao}</div>
+      </div>
+    </div>
+    <div class="sidebar-links">${linksHTML}</div>
+    <div class="sidebar-rodape">
+      <button class="sidebar-btn-senha" onclick="authAbrirTrocaSenha()">🔑 Trocar senha</button>
+      <button class="sidebar-btn-sair" onclick="authFazerLogout()">🚪 Sair</button>
+    </div>
   `;
+
+  const toggle = document.createElement('button');
+  toggle.className = 'sidebar-toggle';
+  toggle.type = 'button';
+  toggle.innerHTML = '☰';
+  toggle.setAttribute('aria-label', 'Abrir menu');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'sidebar-overlay';
+
+  document.body.prepend(overlay);
+  document.body.prepend(sidebar);
+  document.body.prepend(toggle);
+
+  const fechar = () => { sidebar.classList.remove('aberta'); overlay.classList.remove('aberta'); };
+  const abrir  = () => { sidebar.classList.add('aberta'); overlay.classList.add('aberta'); };
+  toggle.addEventListener('click', () => {
+    sidebar.classList.contains('aberta') ? fechar() : abrir();
+  });
+  overlay.addEventListener('click', fechar);
 }
 
 // ===== TROCAR A PRÓPRIA SENHA (útil pra quem recebeu uma senha provisória) =====
