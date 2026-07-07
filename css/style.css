@@ -90,36 +90,40 @@ body.tem-sidebar .app {
   justify-content: center;
   text-align: center;
   gap: 36px;
-  padding: 36px 4px 44px;
+  padding: 64px 24px;
   margin-bottom: 6px;
+  border-radius: 16px;
+  background:
+    linear-gradient(rgba(8, 20, 45, 0.6), rgba(8, 20, 45, 0.7)),
+    url('../img/faetec_barra_mansa.jpg') center/cover no-repeat;
 }
 .hero-texto { flex: 1; min-width: 0; max-width: 720px; margin: 0 auto; }
 .hero-eyebrow {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: #1a73e8;
+  color: #8ab4f8;
   text-transform: uppercase;
   margin-bottom: 12px;
 }
 .hero-titulo {
   font-size: 38px;
   font-weight: 800;
-  color: #1a1a1a;
+  color: #fff;
   line-height: 1.25;
   margin-bottom: 18px;
 }
 .hero-desc {
   font-size: 16px;
-  color: #555;
+  color: #f1f3f4;
   line-height: 1.6;
   margin: 0 auto 24px;
   max-width: 540px;
 }
 @media (max-width: 700px) {
-  .hero-inicio { flex-direction: column; padding: 22px; text-align: center; }
+  .hero-inicio { flex-direction: column; padding: 40px 20px; text-align: center; }
   .hero-desc { max-width: none; }
-  .hero-titulo { font-size: 22px; }
+  .hero-titulo { font-size: 24px; }
 }
 
 /* ===== CARDS ===== */
