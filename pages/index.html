@@ -6,54 +6,6 @@
   <title>Sistema de Avaliação — FAETERJ</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 8px;
-    }
-    .menu-card {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 20px 16px;
-      text-align: center;
-      text-decoration: none;
-      color: #333;
-      transition: all 0.15s;
-      cursor: pointer;
-    }
-    .menu-card:hover {
-      border-color: #4285f4;
-      background: #f8f9ff;
-      transform: translateY(-2px);
-    }
-    .menu-icon {
-      font-size: 32px;
-      margin-bottom: 10px;
-      display: block;
-    }
-    img.menu-icon {
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-      margin: 0 auto 10px;
-    }
-    .menu-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 4px;
-    }
-    .menu-desc {
-      font-size: 11px;
-      color: #888;
-      line-height: 1.4;
-    }
-    .menu-card.blue  { border-top: 3px solid #4285f4; }
-    .menu-card.green { border-top: 3px solid #34a853; }
-    .menu-card.gray  { border-top: 3px solid #888; }
-    .menu-card.amber { border-top: 3px solid #fbbc04; }
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -79,7 +31,6 @@
       margin-top: 12px;
     }
     @media (max-width: 600px) {
-      .menu-grid { grid-template-columns: 1fr; }
       .stats-row { gap: 6px; }
     }
   </style>
@@ -119,36 +70,9 @@
     <div class="stat-card"><div class="stat-num" id="total-trab">0</div><div class="stat-lbl">Trabalhos avaliados</div></div>
   </div>
 
-  <!-- MENU PRINCIPAL -->
-  <div class="card">
-    <h2>📌 Selecione o módulo</h2>
-    <div class="menu-grid">
-      <a href="prova.html" class="menu-card blue">
-        <img src="../img/prova_objetiva.png" alt="" class="menu-icon">
-        <div class="menu-title">Prova objetiva</div>
-        <div class="menu-desc">Corrija provas de múltipla escolha com gabarito automático</div>
-      </a>
-      <a href="trabalho.html" class="menu-card green">
-        <img src="../img/trabalho_artigo.png" alt="" class="menu-icon">
-        <div class="menu-title">Trabalho / Artigo</div>
-        <div class="menu-desc">Avalie artigos e trabalhos por rubrica com pesos personalizados</div>
-      </a>
-      <a href="cadastro.html" class="menu-card amber">
-        <img src="../img/cadastro.jpeg" alt="" class="menu-icon">
-        <div class="menu-title">Cadastro</div>
-        <div class="menu-desc">Cadastre alunos e professores para não digitar o nome sempre</div>
-      </a>
-      <a href="historico.html" class="menu-card gray">
-        <img src="../img/historico.png" alt="" class="menu-icon">
-        <div class="menu-title">Histórico</div>
-        <div class="menu-desc">Veja, filtre e exporte todas as avaliações registradas</div>
-      </a>
-    </div>
-
-    <div class="info-box">
-      💡 <strong>Dica:</strong> As avaliações ficam salvas no navegador automaticamente.
-      Use o botão "Exportar CSV" no histórico para salvar em planilha.
-    </div>
+  <div class="info-box">
+    💡 <strong>Dica:</strong> As avaliações ficam salvas no navegador automaticamente.
+    Use o botão "Exportar CSV" no histórico para salvar em planilha.
   </div>
 
   <!-- ÚLTIMAS AVALIAÇÕES -->
