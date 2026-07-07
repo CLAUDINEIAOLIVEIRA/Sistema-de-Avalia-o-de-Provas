@@ -21,15 +21,6 @@
     }
     .stat-num { font-size: 22px; font-weight: 700; color: #1a73e8; }
     .stat-lbl { font-size: 11px; color: #888; margin-top: 2px; }
-    .info-box {
-      background: #e8f0fe;
-      border: 1px solid #4285f4;
-      border-radius: 8px;
-      padding: 12px 14px;
-      font-size: 12px;
-      color: #1a73e8;
-      margin-top: 12px;
-    }
     @media (max-width: 600px) {
       .stats-row { gap: 6px; }
     }
@@ -45,10 +36,6 @@
       <h1 class="hero-titulo" id="hero-titulo">Bem-vindo(a) de volta!</h1>
       <p class="hero-desc">Corrija provas objetivas e trabalhos por rubrica, cadastre alunos e equipe, e acompanhe
         tudo pelo histórico de avaliações.</p>
-      <div class="hero-botoes">
-        <a href="prova.html" class="hero-btn-primario">✅ Corrigir prova</a>
-        <a href="historico.html" class="hero-btn-secundario">🕐 Ver histórico →</a>
-      </div>
     </div>
     <div class="hero-imagem">
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -68,22 +55,6 @@
     <div class="stat-card"><div class="stat-num" id="total-aval">0</div><div class="stat-lbl">Avaliações salvas</div></div>
     <div class="stat-card"><div class="stat-num" id="total-provas">0</div><div class="stat-lbl">Provas corrigidas</div></div>
     <div class="stat-card"><div class="stat-num" id="total-trab">0</div><div class="stat-lbl">Trabalhos avaliados</div></div>
-  </div>
-
-  <div class="info-box">
-    💡 <strong>Dica:</strong> As avaliações ficam salvas no navegador automaticamente.
-    Use o botão "Exportar CSV" no histórico para salvar em planilha.
-  </div>
-
-  <!-- ÚLTIMAS AVALIAÇÕES -->
-  <div class="card">
-    <h2>🕐 Últimas avaliações</h2>
-    <div id="ultimas-lista">
-      <p class="empty-state">Nenhuma avaliação registrada ainda.</p>
-    </div>
-    <div class="btn-row">
-      <a href="historico.html" class="btn btn-primary">Ver histórico completo →</a>
-    </div>
   </div>
 
 </div>
@@ -106,25 +77,6 @@
     document.getElementById('total-aval').textContent  = hist.length;
     document.getElementById('total-provas').textContent = provas;
     document.getElementById('total-trab').textContent   = trabalhos;
-
-    // Mostrar últimas 3
-    const ul = document.getElementById('ultimas-lista');
-    if (!hist.length) return;
-    ul.innerHTML = hist.slice(0, 3).map(h => `
-      <div class="hist-item">
-        <div>
-          <div class="hist-nome">${h.nome}</div>
-          <div class="hist-sub">${h.disc} · ${h.avTipo} · ${h.data}
-            <span class="tag ${h.tipo === 'prova' ? 'tag-prova' : 'tag-trabalho'}">
-              ${h.tipo === 'prova' ? '📋 Prova' : '📄 Trabalho'}
-            </span>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div class="hist-nota">${h.nota}</div>
-          <div class="hist-tipo">nota</div>
-        </div>
-      </div>`).join('');
   });
 </script>
 </body>
