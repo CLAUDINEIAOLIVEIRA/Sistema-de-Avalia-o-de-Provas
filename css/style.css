@@ -93,9 +93,13 @@ body.tem-sidebar .app {
   padding: 64px 24px;
   margin: 0 -28px 6px;
   width: calc(100% + 56px);
-  background:
-    linear-gradient(rgba(8, 20, 45, 0.6), rgba(8, 20, 45, 0.7)),
-    url('../img/foto_unidade.jpeg') center 25% / cover no-repeat;
+  background-color: #0d2440;
+  background-image:
+    linear-gradient(rgba(8, 20, 45, 0.45), rgba(8, 20, 45, 0.6)),
+    url('../img/foto_unidade.jpeg');
+  background-position: center, center;
+  background-size: cover, contain;
+  background-repeat: no-repeat, no-repeat;
 }
 .hero-texto { flex: 1; min-width: 0; max-width: 720px; margin: 0 auto; }
 .hero-eyebrow {
