@@ -23,6 +23,14 @@ body {
   padding: 16px;
 }
 
+/* Nas páginas com sidebar, o conteúdo fica colado nela (sem centralizar
+   sozinho no espaço restante, senão sobra um vão grande entre os dois). */
+body.tem-sidebar .app {
+  max-width: 1000px;
+  margin: 0;
+  padding: 24px 28px;
+}
+
 /* ===== HEADER ===== */
 .header {
   background: #fff;
@@ -59,6 +67,12 @@ body {
   color: #666;
   margin-top: 2px;
 }
+
+/* Título simples de página (usado nas telas com sidebar — a marca/logo
+   já aparece no topo da sidebar, então não repete aqui). */
+.page-header { margin-bottom: 16px; }
+.page-header h1 { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+.page-header p { font-size: 13px; color: #666; margin-top: 3px; }
 
 /* ===== CARDS ===== */
 .card {
