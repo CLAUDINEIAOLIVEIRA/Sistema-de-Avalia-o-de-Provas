@@ -116,7 +116,7 @@ function authRenderSidebar(paginaAtual) {
   sidebar.innerHTML = `
     <div class="sidebar-topo">
       <img src="../img/logo_oficial_FAETERJ.jpeg" alt="Logo FAETERJ">
-      <span>Sistema de Avaliação<br>FAETERJ Barra Mansa</span>
+      <span>Sistema de Avaliação Escolar</span>
     </div>
     <div class="sidebar-perfil">
       <div class="sidebar-avatar">${iniciais}</div>
