@@ -88,11 +88,8 @@ body.tem-sidebar .app {
   display: flex;
   align-items: center;
   gap: 36px;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 14px;
-  padding: 36px;
-  margin-bottom: 20px;
+  padding: 20px 4px 30px;
+  margin-bottom: 6px;
 }
 .hero-texto { flex: 1; min-width: 0; }
 .hero-eyebrow {
