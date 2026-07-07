@@ -11,7 +11,7 @@
 
 body {
   font-family: Arial, sans-serif;
-  background: #f5f5f5;
+  background: #fff;
   color: #222;
   font-size: 14px;
 }
@@ -87,6 +87,8 @@ body.tem-sidebar .app {
 .hero-inicio {
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 36px;
   padding: 20px 4px 30px;
   margin-bottom: 6px;
@@ -111,7 +113,7 @@ body.tem-sidebar .app {
   font-size: 14px;
   color: #555;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin: 0 auto 24px;
   max-width: 460px;
 }
 @media (max-width: 700px) {
