@@ -85,14 +85,17 @@ body.tem-sidebar .app {
 .inst-header span { font-size: 13px; font-weight: 600; color: #555; }
 
 .hero-inicio {
+  padding: 48px 32px;
+  margin-bottom: 6px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #163f70, #2b74c9);
+}
+.hero-inicio-conteudo {
   display: flex;
   align-items: center;
   gap: 40px;
-  padding: 48px 32px;
-  margin: 0 auto 6px;
   max-width: 880px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #163f70, #2b74c9);
+  margin: 0 auto;
   text-align: left;
 }
 .hero-texto { flex: 1; min-width: 0; }
@@ -134,7 +137,8 @@ body.tem-sidebar .app {
   display: block;
 }
 @media (max-width: 700px) {
-  .hero-inicio { flex-direction: column; padding: 24px 20px 32px; text-align: center; }
+  .hero-inicio { padding: 24px 20px 32px; }
+  .hero-inicio-conteudo { flex-direction: column; text-align: center; }
   .hero-desc { max-width: none; margin: 0 auto; }
   .hero-titulo { font-size: 24px; }
   .hero-foto { width: 100%; max-width: 240px; height: 200px; }
