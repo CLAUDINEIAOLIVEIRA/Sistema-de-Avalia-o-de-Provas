@@ -89,9 +89,10 @@ body.tem-sidebar .app {
   align-items: center;
   gap: 40px;
   padding: 48px 32px;
-  margin: 0 -28px 6px;
-  width: calc(100% + 56px);
-  background: linear-gradient(135deg, #0d2440, #1a4a80);
+  margin: 0 auto 6px;
+  max-width: 880px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #163f70, #2b74c9);
   text-align: left;
 }
 .hero-texto { flex: 1; min-width: 0; }
