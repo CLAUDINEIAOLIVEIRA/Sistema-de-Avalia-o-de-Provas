@@ -93,8 +93,8 @@ body.tem-sidebar .app {
 .hero-inicio-conteudo {
   display: flex;
   align-items: center;
-  gap: 40px;
-  max-width: 880px;
+  gap: 48px;
+  max-width: 1000px;
   margin: 0 auto;
   text-align: left;
 }
@@ -123,8 +123,8 @@ body.tem-sidebar .app {
 }
 .hero-foto {
   flex-shrink: 0;
-  width: 220px;
-  height: 280px;
+  width: 320px;
+  height: 380px;
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -141,7 +141,7 @@ body.tem-sidebar .app {
   .hero-inicio-conteudo { flex-direction: column; text-align: center; }
   .hero-desc { max-width: none; margin: 0 auto; }
   .hero-titulo { font-size: 24px; }
-  .hero-foto { width: 100%; max-width: 240px; height: 200px; }
+  .hero-foto { width: 100%; max-width: 300px; height: 260px; }
 }
 
 /* ===== CARDS ===== */
