@@ -164,11 +164,15 @@
     atualizarStats(todosItens);
     popularFiltroDisc(todosItens);
 
+    // Permite chegar aqui já filtrado (ex: clicando nas estatísticas da Início)
+    const tipoNaURL = new URLSearchParams(window.location.search).get('tipo');
+    if (tipoNaURL) document.getElementById('f-tipo').value = tipoNaURL;
+
     if (!todosItens.length) {
       document.getElementById('historico-lista').innerHTML =
         '<p class="empty-center">Nenhuma avaliação salva ainda.<br>Corrija uma prova ou trabalho e clique em "Salvar".</p>';
     } else {
-      renderLista(todosItens);
+      filtrarHistorico();
     }
   });
 </script>
