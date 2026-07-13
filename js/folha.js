@@ -147,7 +147,7 @@ function folhaSVG(qtd, dadosAluno) {
   ${marcador(layout.cantos.br)}
   ${marcador(layout.cantos.bl)}
 
-  <text x="${FOLHA_REF_W / 2}" y="70" font-size="18" font-weight="700" font-family="Arial" text-anchor="middle" fill="#000">FOLHA DE RESPOSTAS — FAETERJ Barra Mansa</text>
+  <text x="${FOLHA_REF_W / 2}" y="70" font-size="18" font-weight="700" font-family="Arial" text-anchor="middle" fill="#000">FOLHA DE RESPOSTAS — TecPro Tecnologia</text>
 
   ${cabecalhoHTML}
 

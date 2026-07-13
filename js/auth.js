@@ -115,7 +115,7 @@ function authRenderSidebar(paginaAtual) {
   sidebar.className = 'sidebar';
   sidebar.innerHTML = `
     <div class="sidebar-topo">
-      <img src="../img/logo_oficial_FAETERJ.jpeg" alt="Logo FAETERJ">
+      <img src="../img/logo_tecpro.png" alt="Logo TecPro Tecnologia">
       <span>Sistema de Avaliação Escolar</span>
     </div>
     <div class="sidebar-perfil">
